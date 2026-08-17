@@ -42,6 +42,34 @@ almost for free since the CNN rows already exist.
 - Dataset: [GitHub](https://github.com/DebeshJha/GastroVision) · [OSF](https://osf.io/84e7f/) · paper arXiv 2307.08140
 - Original split: **stratified 60:20:20** — reproduce with a **fixed seed** (no ad-hoc re-splitting → avoids leakage).
 
+### Baseline sources & how to reproduce each (proof the baselines are valid)
+
+Be explicit about **two provenance categories** when presenting — it's what makes the comparison defensible:
+
+- **Reference baseline (has a published number to match):** taken from the GastroVision paper, Table 2.
+  Reproducing it on our split *proves our pipeline is correct* before we compare anything.
+- **New baselines (no published number — our contribution):** the Transformer and Hybrid are **not** in
+  the paper. Here "reproduce" means *train under the identical protocol*, not match a target number.
+
+| Baseline | Family | Architecture source | Pretrained weights | Published macro-F1 to match |
+|---|---|---|---|---|
+| **DenseNet-121** | CNN | Huang et al., CVPR 2017 (arXiv:1608.06993) — the model used by the GastroVision paper | torchvision `DenseNet121_Weights.IMAGENET1K_V1` | **0.6504** (paper Table 2) |
+| **Swin-T** | Transformer | Liu et al., ICCV 2021 (arXiv:2103.14030) | `timm` · `swin_tiny_patch4_window7_224` (ImageNet-1k) | — (new; no paper number) |
+| **ViT-S** *(alt.)* | Transformer | Dosovitskiy et al., ICLR 2021 (arXiv:2010.11929) | `timm` · `vit_small_patch16_224` (ImageNet-21k→1k) | — (new) |
+| **CoAtNet-0** | Hybrid | Dai et al., NeurIPS 2021 (arXiv:2106.04803) | `timm` · `coatnet_0_rw_224` (ImageNet-1k) | — (new) |
+
+Weights come from [`timm`](https://github.com/huggingface/pytorch-image-models) (Wightman, *PyTorch Image Models*) and torchvision — pretrained on ImageNet, then we replace the classifier head with a fresh `NUM_CLASSES` linear layer.
+
+**Identical reproduce protocol for all four** (this equal footing is what makes the comparison valid):
+- **Same data:** 22 classes (paper rule *">25 samples"*), stratified **60:20:20**, `SPLIT_SEED=42` — fixed for everyone.
+- **Input** 224×224, ImageNet mean/std normalization; pretrained backbone + fresh linear head.
+- **AdamW** (lr `1e-4`, weight-decay `1e-4`), **30 epochs**, batch 32, AMP on GPU, keep the **best-val-macro-F1** checkpoint.
+- **≥ 3 seeds → report mean ± std**; primary metric **macro-F1** (+ per-class F1 + confusion matrix).
+- One driver for all architectures: `run_seeds(build_fn, tag=...)` in the shared notebook.
+
+> **Validity check already passed:** our reproduced **DenseNet-121 test macro-F1 = 0.676** (1 seed) ≥ paper
+> **0.6504** — confirming the split + eval harness are correct. (Run all 3 seeds for the final `mean ± std`.)
+
 ---
 
 ## 2. What the report should cover
