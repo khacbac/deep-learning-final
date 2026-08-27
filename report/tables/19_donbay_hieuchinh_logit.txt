@@ -1,0 +1,7 @@
+=== Don bay 2: hieu chinh logit (tau do tren VAL, quy tac 'top3_tta') ===
+B0_densenet121     tau*=0.1  test: 0.6768 -> 0.6763  (-0.0006)
+S0_swin_t          tau*=0.2  test: 0.6976 -> 0.7029  (+0.0054)
+P0_coatnet0        tau*=0.2  test: 0.6805 -> 0.7045  (+0.0240)
+P1_coatnet0_288    tau*=0.9  test: 0.6941 -> 0.6952  (+0.0011)
+
+(tau=0 nghia la khong hieu chinh gi; neu tau* ~ 0 thi don bay nay khong co gi de an)

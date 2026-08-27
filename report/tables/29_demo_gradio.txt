@@ -1,0 +1,4 @@
+IMG_SIZE -> 288 (dung augment 'plain')
+IMG_SIZE -> 224 (dung augment 'plain')
+demo: da nap P1_coatnet0_288 seed 0 @ 288px tren cuda
+  tu kiem tra: that = 'Accessory tools' | du doan = 'Accessory tools' (1.000)

@@ -1,0 +1,25 @@
+=== Don bay 3: ensemble nhieu kien truc (0 epoch) ===
+to hop                                             val    test
+B0_densenet121                                  0.6681  0.6768
+S0_swin_t                                       0.6791  0.6976
+P0_coatnet0                                     0.6630  0.6805
+P1_coatnet0_288                                 0.6879  0.6941
+B0_densenet121 + S0_swin_t                      0.6922  0.6894
+B0_densenet121 + P0_coatnet0                    0.6989  0.6850
+B0_densenet121 + P1_coatnet0_288                0.6989  0.6946
+S0_swin_t + P0_coatnet0                         0.7077  0.7052
+S0_swin_t + P1_coatnet0_288                     0.6992  0.7185
+P0_coatnet0 + P1_coatnet0_288                   0.6843  0.6971
+B0_densenet121 + S0_swin_t + P0_coatnet0        0.7039  0.6970
+B0_densenet121 + S0_swin_t + P1_coatnet0_288    0.6862  0.7155
+B0_densenet121 + P0_coatnet0 + P1_coatnet0_288  0.6968  0.7041
+S0_swin_t + P0_coatnet0 + P1_coatnet0_288       0.7108  0.7215
+B0_densenet121 + S0_swin_t + P0_coatnet0 + P1_coatnet0_288  0.7143  0.7242
+
+Chon theo VAL     : B0_densenet121 + S0_swin_t + P0_coatnet0 + P1_coatnet0_288
+   -> test = 0.7242   <== CON SO DUOC PHEP BAO CAO
+Cao nhat tren TEST: B0_densenet121 + S0_swin_t + P0_coatnet0 + P1_coatnet0_288 -> 0.7242   (chenh +0.0000)
+   Dong tren KHONG duoc bao cao: chon to hop bang chinh tap test la ro ri quy trinh.
+
+-> Ensemble luon la DONG RIENG: no dung nhieu lan huan luyen, khong duoc dat canh
+   mot mo hinh don roi goi la 'cai tien'.

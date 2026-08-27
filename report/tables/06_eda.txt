@@ -1,0 +1,29 @@
+                                                  lop  tong  train  val  test
+Normal mucosa and vascular pattern in the large bowel  1467    880  293   294
+                                      Accessory tools  1266    760  253   253
+                                       Normal stomach   969    581  194   194
+                           Small bowel_terminal ileum   846    508  169   169
+                                         Colon polyps   820    492  164   164
+                                              Pylorus   393    236   78    79
+              Gastroesophageal_junction_normal z-line   330    198   66    66
+                               Dyed-resection-margins   246    148   49    49
+                                        Duodenal bulb   205    123   41    41
+                                      Ileocecal valve   200    120   40    40
+                                       Blood in lumen   171    103   34    34
+                                   Dyed-lifted-polyps   141     85   28    28
+                                     Normal esophagus   140     84   28    28
+                                    Colorectal cancer   139     83   28    28
+                                                Cecum   113     68   22    23
+                                          Esophagitis   107     64   22    21
+                                  Barrett's esophagus    95     57   19    19
+                                      Resected polyps    92     55   19    18
+                                     Retroflex rectum    67     40   14    13
+                                       Gastric polyps    65     39   13    13
+                     Mucosal inflammation large bowel    29     17    6     6
+                                    Colon diverticula    29     17    6     6
+
+Ty le mat can bang (lop lon nhat / nho nhat): 50.6x
+So lop co < 10 anh TEST: 2 / 22
+
+-> Day chinh la ly do macro-F1 rat nhieu: mot lop hiem chi co vai anh test,
+   doan dung them 1 anh la F1 cua lop do nhay ~0.15, keo ca trung binh 22 lop.

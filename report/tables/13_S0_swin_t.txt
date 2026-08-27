@@ -1,0 +1,8 @@
+[S0_swin_t seed 0] doc lai tu S0_swin_t_seed0.npz (bo qua huan luyen)
+   best=0.6554  best_tta=0.6605  smooth=0.6593  smooth_tta=0.6629  top3=0.6995  top3_tta=0.6976
+[S0_swin_t seed 1] doc lai tu S0_swin_t_seed1.npz (bo qua huan luyen)
+   best=0.6611  best_tta=0.6539  smooth=0.6860  smooth_tta=0.6885  top3=0.6777  top3_tta=0.6878
+[S0_swin_t seed 2] doc lai tu S0_swin_t_seed2.npz (bo qua huan luyen)
+   best=0.6476  best_tta=0.6478  smooth=0.6404  smooth_tta=0.6598  top3=0.6830  top3_tta=0.6700
+
+>>> S0_swin_t  TEST macro-F1 (quy tac 'best') = 0.6547 +/- 0.0056   tren 3 seed

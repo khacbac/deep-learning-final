@@ -1,0 +1,63 @@
+# Runtime artifacts — never commit (dataset ~1.8 GB, weights, ONNX, smoke-run outputs)
+data/
+checkpoints/
+outputs/
+
+# Model / tensor dumps wherever they land (Drive, Colab, local)
+*.zip
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npz
+*.onnx
+*.onnx.data
+*.h5
+*.pkl
+*.pickle
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.Python
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# Tests / linters
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Jupyter — keep the executed notebook, drop checkpoints and rebuild backups
+.ipynb_checkpoints/
+*.ipynb.bak-*
+
+# Experiment trackers
+wandb/
+lightning_logs/
+mlruns/
+runs/
+.gradio/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~

@@ -1,0 +1,4 @@
+MD5 tren 7930 anh trong 4s
+  nhom trung byte          : 1  (2 anh)
+  nhom VAT QUA cac tap chia: 1   <-- day moi la ro ri that su
+   * [('val', 'Colon polyps', 'ba615bcd-2f99-4a12-884d-d9cd2c04c2a1.jpg'), ('train', 'Colon polyps', 'ckda1fpc5000l3a5s17a45xql.jpg')]

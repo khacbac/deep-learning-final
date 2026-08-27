@@ -1,0 +1,4 @@
+B0_densenet121     val cao nhat=0.6681 tai epoch 12 | do lech 5 epoch cuoi=0.0234
+S0_swin_t          val cao nhat=0.6791 tai epoch  7 | do lech 5 epoch cuoi=0.0102
+P0_coatnet0        val cao nhat=0.6630 tai epoch 22 | do lech 5 epoch cuoi=0.0269
+P1_coatnet0_288    val cao nhat=0.6879 tai epoch 27 | do lech 5 epoch cuoi=0.0021
