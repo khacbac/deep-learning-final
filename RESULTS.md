@@ -756,3 +756,64 @@ with `grep -n "3 seed" build_notebook.py` rather than by line number: adding §1
 invalidated the list that used to be quoted here, and §19d added two more of its own. Resume is per-seed, so seeds 0–2 reload from `.npz`
 and only 3–4 train. Note also that seeds 0–2 were trained on A100: any new seed trained on a
 different GPU mixes hardware variance into σ (see Gate 0a), which must then be disclosed.
+
+---
+
+## 10. CPU full-data run — the CPU-only notebook on all 7,930 images (2026-08-29)
+
+`gastrovision_classification_cpu.ipynb` (built by `build_cpu_notebook.py`) — the **CPU-only**
+variant: CUDA hidden before `import torch`, every `.cuda()` call trapped, pure fp32, no AMP.
+Executed end to end twice via `nbconvert` on the local machine (12 threads, torch 2.13.0+cpu,
+Python 3.14), profile **`cpu-full`**: all 7,930 images, the identical `SPLIT_SEED = 42` split
+(4,758 / 1,586 / 1,586 — same as every GPU run), **15 epochs, batch 16, seed 0 only**.
+
+Dataset was re-downloaded fresh from OSF (Google Drive rate-limited `gdown`); MD5 matched the
+published hash (`90aabf906e153f7bac4548765402d4c7`), and the class scan reproduced
+27 folders / 8,000 images → 22 classes / 7,930 exactly.
+
+### Test macro-F1, seed 0, all six selection rules
+
+| Config | best | smooth | top3 | best_tta | smooth_tta | top3_tta |
+|---|---|---|---|---|---|---|
+| `B0_densenet121_cpu` @224 | **0.6844** | 0.6665 | **0.6969** | 0.6764 | 0.6689 | 0.6883 |
+| `M0_mobilenetv3_cpu` @224 | 0.6191 | 0.6191 | 0.6649 | 0.6434 | 0.6434 | 0.6737 |
+
+Bootstrap CI95 (1,000 resamples, seed-0 logits) for DenseNet-121:
+`best` **[0.6343, 0.7204]**, `top3` **[0.6495, 0.7328]**. Neither interval contains 0.6504's
+lower neighborhood comfortably enough to claim anything — see the caveats.
+
+### Comparison against the earlier baselines
+
+| Run | Protocol | best | top3 | Notes |
+|---|---|---|---|---|
+| Paper DenseNet-121 (Table 2) | 150 ep, batch 32, TITAN Xp, 1 run | 0.6504 | — | no error bar |
+| `B0` A100 (§9) | 30 ep, batch 32, bf16+TF32, 3 seeds | 0.6491 ± 0.0124 | 0.6710 ± 0.0103 | clean reproduction of 0.6504 |
+| `B0_densenet121_cpu` (this run) | **15 ep, batch 16**, fp32 CPU, 1 seed | 0.6844 | 0.6969 | ⚠️ protocol differs — see below |
+| `M0_mobilenetv3_cpu` (this run) | 15 ep, batch 16, fp32 CPU, 1 seed | 0.6191 | 0.6649 | 4.2M params, CPU-deployment model |
+
+**Read the 0.6844 with both hands on the caveats:**
+
+1. **The protocol is not the paper's.** Batch 16 (not 32) and 15 epochs (not 30/150) — batch size
+   changes the effective LR/update count, which §5 of the notebook explicitly forbids when matching
+   0.6504. This run is a *CPU feasibility measurement*, not a third reproduction attempt.
+2. **One seed.** The A100 3-seed spread on the same architecture was ±0.0124 with per-seed `best` of
+   0.6666 / 0.6394 / 0.6414 — a lucky seed alone can explain a large part of the gap to 0.6844,
+   and Gate 0a showed different hardware = a different model even at the same seed.
+3. What the point estimate *does* suggest, consistent with §9: smaller batches + more update steps
+   per epoch may be worth a controlled ablation on GPU (batch 16 vs 32 at equal wall-clock).
+4. Val peaked at **epoch 7 of 15** (0.6806) — the 15-epoch budget was not the binding constraint,
+   mirroring the A100 finding (peak at 12/30).
+
+### Cost and deployment numbers (the reason this notebook exists)
+
+| | DenseNet-121 | MobileNetV3-L |
+|---|---|---|
+| Training, 15 ep full data (12-thread CPU) | **225 min** (~810 s/ep) | 82 min (~300 s/ep) |
+| Inference, batch 1, fp32 | 72.1 ms/img | **21.7 ms/img** |
+| Parameters / size | 7.0M / 27.9 MB | 4.2M / 16.9 MB |
+
+MobileNetV3 gives up 0.065 macro-F1 under `best` (0.6191 vs 0.6844) but only 0.023 under
+`top3_tta` (0.6737 vs 0.6883, CIs overlapping heavily) at **3.3× lower latency** — for a
+CPU-only deployment the checkpoint-ensemble + TTA levers close most of the architecture gap,
+which is the same story §9 told on GPU. Artifacts: `checkpoints_cpu/*.npz|pt`, figures in
+`outputs_cpu/`, executed notebook with all cell outputs in git.
