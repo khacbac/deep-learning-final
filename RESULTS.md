@@ -14,7 +14,32 @@ Living record of measured numbers for the report's ablation table. **Only measur
 |---|---|---|---|
 | CNN (reference baseline) | **Member A** | DenseNet-121 | §2, §3 |
 | Transformer (new baseline) | **Member B** | Swin-T | §4 |
-| Proposed model (**mandatory** — carries the improvement claim) | shared | **CoAtNet-0 @288 + TTA + top-3 ckpt ensemble** (`P1`); `P0` @224 is the intermediate that isolates the resolution lever, **not a third baseline** | §5, §9 |
+| Proposed model (**mandatory** — carries the improvement claim) | shared | **CoAtNet-0 @288 + modern training recipe + top-3 ckpt ensemble + logit adjustment** (`P2`); `P0` @224 and `P1` @288 are the intermediates that isolate the resolution lever, **not baselines** | §10.9, §10.10 |
+
+> ### 🚨 Read this before quoting any macro-F1 from §2–§9
+>
+> This file is a **chronological log**, so the oldest numbers come first. **Every macro-F1 in §2,
+> §3, §4, §5 and §9 is superseded.** §2 predates the determinism fix (it says so itself); §3–§5 and
+> §9 are the **round-1 record (A100, 26–27 Aug 2026, rule `top3_tta`)**, and the four round-1
+> configs were later **retrained** rather than resumed on the T4 round — so every score moved,
+> `SELECTION_RULE` re-voted itself from `top3_tta` to **`top3`**, and the proposed model changed
+> from `P1` to **`P2`**. Those sections are kept as the record of *how* each decision was reached,
+> not as numbers to quote.
+>
+> **Not** superseded, because they do not depend on the training round: §1 (the paper's own
+> numbers), §0b (verification at the source), §7 (the data audit — it depends only on the split,
+> and the T4 round re-found the same 1 cross-split MD5 group and the same 9 near-duplicate pairs:
+> `report/tables/07,08`).
+>
+> **The current numbers live in §10.9, §10.10, and `report/tables/21_bang_tong_ket.txt`:**
+>
+> | | round 1 — A100, `top3_tta` (§9) | **current — T4, `top3`** |
+> |---|---|---|
+> | `B0_densenet121` (reference baseline) | 0.6676 ± 0.0066 | **0.6780 ± 0.0073** |
+> | `S0_swin_t` (new baseline) | 0.6851 ± 0.0114 | **0.6813 ± 0.0081** |
+> | proposed model | `P1` 0.6961 ± 0.0016 | **`P2` 0.7298 ± 0.0096** — with logit adjustment, **0.7441 ± 0.0088** |
+>
+> Provenance of the switch: §10.9 finding 5. Cross-hardware spread: `report/tables-offline/30_*`.
 
 ## What to send me after each run *(historical — every run is done; kept as the workflow record)*
 From the printed output I need:
@@ -44,11 +69,17 @@ protocol comparison and the class-by-class split check, are in **§0b** below.
 - **Primary (committed floor):** beat 0.6504 with a 3-seed mean ± std / bootstrap CI that does
   **not overlap** the baseline, plus a documented answer to *"what actually moves macro-F1 here"*
   (negative results included).
-  → ✅ **met.** `P1` = 0.6961 ± 0.0016, CI95 [0.6548, 0.7245]; the "what moves it" answer is §9.
+  → ✅ **met.** `P2` + logit adjustment = **0.7441 ± 0.0088**, CI95 [0.6986, 0.7736]; the "what
+  moves it" answer is §10.9 / §10.10 (and §9 for the round-1 version of it).
 - **Stretch (the brief's actual target):** macro-F1 **0.72–0.75**.
-  → ⚠️ **met only by the ensemble rows**, which cost 3–4 training runs and are therefore reported
-  separately: 0.7221 (3 seeds of `P1`, CI [0.6728, 0.7609]) and 0.7242 (four architectures, combo
-  chosen on val). **No single trained model reaches 0.72** — say it that way.
+  → ✅ **met by a single trained model**, which is stronger than what this line originally claimed.
+  `P2` alone = **0.7298 ± 0.0096**; with logit adjustment (0 extra epochs) **0.7441 ± 0.0088**. The
+  3-seed ensemble row, 0.7587, stays reported **separately** because it costs 3 training runs.
+
+> ⚠️ **Both bullets above were rewritten 2026-08-31 / 09-01.** They used to read *"met: `P1` =
+> 0.6961 ± 0.0016"* and *"stretch met only by the ensemble rows … no single trained model reaches
+> 0.72"*. Both were true of the A100 round and are false now: `SESSION = 1` replaced those numbers
+> (§10.9 finding 5) and `P2` cleared 0.72 as a single model.
 
 **On the revision — say it straight in the report:** ≥ 0.75 was **not** an unmeasured guess of
 ours. It is the brief's own recommended target for GastroVision (p12: *target ≥ 0.75, headroom
@@ -82,7 +113,7 @@ report's numbers come from §3 onwards.
 
 ---
 
-## 3. Gate 0 — the only experiment that currently means anything
+## 3. Gate 0 — the gate that had to clear before any new rung *(closed 2026-08-27)*
 
 No new rung until these are done. Items 0b, 2b, 3a, 2 and 3b cost **zero extra epochs** —
 but only in the order below: **3a must land before item 1**, or item 1's six runs are locked to
@@ -97,7 +128,7 @@ the old selection rule and 3b stops being free. **Item 0a comes first** — see 
 | **3a** | **De-noise checkpoint selection — code change** | 0 epochs | ✅ **done** — `Tracker` in the notebook keeps top-3 raw-val states + the 3-epoch-smoothed-argmax state + the full val history; `run_seeds` turns them into **6 test numbers per single training run** (3 rules × TTA on/off) |
 | 1 | **3 seeds per config** — superseded by the full A100 run: 4 configs × 3 seeds, see §9 | 2.0 h A100 | ✅ **done** |
 | 2 | **Bootstrap CI** on test — `bootstrap_ci(...)`, 1000 resamples | 0 epochs | ✅ **automated** — runs for every model in the summary cell. ⚠️ Still free only for *new* runs: B0 0.6516 / B5 0.6342 saved no logits |
-| 3b | **Pick the rule** — best-val vs 3-epoch-smoothed vs top-3-ensemble, × TTA | 0 epochs | ✅ **DECIDED: `top3_tta`** — see §9. The notebook now *assigns* `SELECTION_RULE` from the ranking instead of only printing a suggestion (it used to print "use top3" and then keep using `best` for every table below it) |
+| 3b | **Pick the rule** — best-val vs 3-epoch-smoothed vs top-3-ensemble, × TTA | 0 epochs | ✅ **decided by vote, and the vote is re-run every session.** Round 1 (A100) picked `top3_tta` (§9); the T4 round re-voted and picked **`top3`**, which is the rule in force — §10.9 finding 5. The notebook now *assigns* `SELECTION_RULE` from the ranking instead of only printing a suggestion (it used to print "use top3" and then keep using `best` for every table below it) |
 
 ### 3-seed results (the only numbers quotable in the report)
 Superseded by **§9** — the A100 run covers 4 configs × 3 seeds under all 6 selection rules.
@@ -117,6 +148,10 @@ They are kept here as the old-protocol record, not as row-1 of the final mean.
 ---
 
 ## 4. Swin-T — Member B (new baseline, no published number to match)
+
+> ⚠️ **Round-1 record (A100, `top3_tta`).** `S0` is now **0.6813 ± 0.0081** under `top3` on the T4
+> round (`report/tables/21_bang_tong_ket.txt`); the 0.6851 ± 0.0114 below is the superseded value.
+> The *protocol* argument in this section is unaffected — it is why the row is kept.
 
 Run under the **identical protocol** as B0 — same split, same `SPLIT_SEED=42`, same 3 seeds,
 AdamW 1e-4 / wd 1e-4, 30 epochs, batch 32, 224px, `run_seeds(build_swin_t, tag=...)`.
@@ -160,7 +195,13 @@ no pretrained weights for the new layers and would confound architecture with in
 | Config | Seeds | Test macro-F1 (`top3_tta`) | vs B0 | vs S0 | Status |
 |---|---|---|---|---|---|
 | `P0` CoAtNet-0 @224 — *intermediate, not a third baseline* | [0,1,2] | 0.6818 ± 0.0014 | +0.0142 | −0.0033 | ✅ done (§9) |
-| **`P1` CoAtNet-0 @288 + TTA + top-3 ckpt ensemble** — **the proposal** | [0,1,2] | **0.6961 ± 0.0016** | **+0.0285** | **+0.0110** | ✅ done (§9) |
+| **`P1` CoAtNet-0 @288 + TTA + top-3 ckpt ensemble** — ~~**the proposal**~~ | [0,1,2] | **0.6961 ± 0.0016** | **+0.0285** | **+0.0110** | ✅ done (§9) — **superseded**, see below |
+
+> ⚠️ **`P1` is no longer the proposal.** Since `SESSION = 1` (2026-08-31) the proposed model is
+> **`P2`** = the same backbone under a modern training recipe, + top-3 ensemble + logit adjustment
+> = **0.7441 ± 0.0088** under rule `top3`. This whole section is the round-1 record: the numbers in
+> it are A100 / `top3_tta` and were replaced when those configs were retrained on T4. Current
+> numbers: §10.9, §10.10, and `report/tables/21_bang_tong_ket.txt`.
 
 Per-seed detail (test macro-F1, `top3_tta`):
 
@@ -353,9 +394,17 @@ sane. With the resume mechanism this splits cleanly into 4 Colab sessions.
 
 ---
 
-## 9. A100 run — the real numbers (2026-08-26)
+## 9. A100 run — round 1 (2026-08-26) — **superseded**
 
-`gastrovision_classification.ipynb`, profile `gpu-a100`, 30 epochs, batch 32, bf16 + TF32,
+> 🚨 **Every number in this section has been replaced.** These four configs were **retrained** (not
+> resumed) on the T4 round, so all scores moved and the rule re-voted itself to `top3`; the proposed
+> model moved from `P1` to `P2`. Current numbers: §10.9, §10.10,
+> `report/tables/21_bang_tong_ket.txt`. What this section is still good for: the *reasoning* — Claim
+> 1 vs Claim 2 kept separate, the per-class comparison against the paper's Table 3, and the
+> lever-by-lever accounting, all of which the T4 round re-confirmed in form if not in value. The
+> A100 tables themselves are preserved in `report/tables-a100/`.
+
+`final-gastrovision-classification.ipynb`, profile `gpu-a100`, 30 epochs, batch 32, bf16 + TF32,
 4 configs × 3 seeds, ~10 min/seed → **2.0 h total**. Zero errors, Gate-0a passed on GPU.
 
 ### Test macro-F1, mean over seeds [0,1,2], all six selection rules
@@ -369,7 +418,9 @@ sane. With the resume mechanism this splits cleanly into 4 Colab sessions.
 | *average rank (1 = best)* | 4.50 | 4.75 | 1.50 | 4.75 | 4.00 | **1.50** |
 
 `top3` and `top3_tta` tie on rank; the tie is broken by mean macro-F1 (0.68265 vs 0.68222)
-→ **`SELECTION_RULE = "top3_tta"` for the whole report**.
+→ `SELECTION_RULE = "top3_tta"` **for round 1**. ⚠️ The tie is this thin — 0.0004 — which is why
+the T4 round's re-vote flipped it to **`top3`**, the rule the report actually uses. Do not read this
+line as the report's rule.
 
 ### The two claims, kept separate
 
@@ -385,7 +436,10 @@ paper", because the paper did not use checkpoint ensembling.
 | `B0_densenet121` | 0.6676 ± 0.0066 | +0.0172 |
 | `S0_swin_t` | 0.6851 ± 0.0114 | +0.0347 |
 | `P0_coatnet0` | 0.6818 ± 0.0014 | +0.0314 |
-| **`P1_coatnet0_288`** (proposed) | **0.6961 ± 0.0016** | **+0.0457** |
+| **`P1_coatnet0_288`** (~~proposed~~ — round 1 only) | **0.6961 ± 0.0016** | **+0.0457** |
+
+⚠️ Superseded on both counts: the values are round-1/A100, and the proposal is now `P2`
+(0.7298 ± 0.0096, or 0.7441 ± 0.0088 with logit adjustment). See the banner above.
 
 ### What actually bought the improvement — and what did not
 
@@ -759,61 +813,622 @@ different GPU mixes hardware variance into σ (see Gate 0a), which must then be 
 
 ---
 
-## 10. CPU full-data run — the CPU-only notebook on all 7,930 images (2026-08-29)
+## 10. Kế hoạch vòng 2 — nâng trần kết quả (lập 2026-08-27)
 
-`gastrovision_classification_cpu.ipynb` (built by `build_cpu_notebook.py`) — the **CPU-only**
-variant: CUDA hidden before `import torch`, every `.cuda()` call trapped, pure fp32, no AMP.
-Executed end to end twice via `nbconvert` on the local machine (12 threads, torch 2.13.0+cpu,
-Python 3.14), profile **`cpu-full`**: all 7,930 images, the identical `SPLIT_SEED = 42` split
-(4,758 / 1,586 / 1,586 — same as every GPU run), **15 epochs, batch 16, seed 0 only**.
+Mục này ghi lại **chẩn đoán** dẫn tới kế hoạch, **từng bước làm gì**, và quan trọng nhất là
+**ý tưởng của mỗi bước lấy từ đâu** — để báo cáo truy nguyên được, và để phân biệt rõ cái gì là
+*đọc được ở tài liệu ngoài* với cái gì là *đo được từ chính dự án này*.
 
-Dataset was re-downloaded fresh from OSF (Google Drive rate-limited `gdown`); MD5 matched the
-published hash (`90aabf906e153f7bac4548765402d4c7`), and the class scan reproduced
-27 folders / 8,000 images → 22 classes / 7,930 exactly.
+### 10.1 Chẩn đoán: trần nằm ở đâu
 
-### Test macro-F1, seed 0, all six selection rules
+Tách macro-F1 của `P1` (0.6941, seed 0) theo cỡ lớp:
 
-| Config | best | smooth | top3 | best_tta | smooth_tta | top3_tta |
-|---|---|---|---|---|---|---|
-| `B0_densenet121_cpu` @224 | **0.6844** | 0.6665 | **0.6969** | 0.6764 | 0.6689 | 0.6883 |
-| `M0_mobilenetv3_cpu` @224 | 0.6191 | 0.6191 | 0.6649 | 0.6434 | 0.6434 | 0.6737 |
+| Nhóm | Số lớp | Mean F1 | Đóng góp |
+|---|---|---|---|
+| Common (≥ 66 ảnh test) | 7 | **0.869** | 6.085/22 |
+| Rare (< 50 ảnh test) | 15 | **0.612** | 9.184/22 |
 
-Bootstrap CI95 (1,000 resamples, seed-0 logits) for DenseNet-121:
-`best` **[0.6343, 0.7204]**, `top3` **[0.6495, 0.7328]**. Neither interval contains 0.6504's
-lower neighborhood comfortably enough to claim anything — see the caveats.
+Nhóm common đã bão hoà. Toàn bộ khoảng cách còn lại nằm ở **7 lớp**: Mucosal inflammation LB
+(0.000), Cecum (0.242), Colorectal cancer (0.372), Esophagitis (0.457), Gastric polyps (0.476),
+Colon diverticula (0.545), Resected polyps (0.552) — mean **0.378**. Nếu riêng nhóm này lên 0.70 thì
+macro-F1 tăng **+0.103** → ~0.80. Đó là toàn bộ headroom, và nó là headroom **dữ liệu**.
 
-### Comparison against the earlier baselines
+Ba bằng chứng nói đây **không** chỉ là lỗi tối ưu hoá:
+1. Bốn kiến trúc + 288px + ensemble vẫn không nhấc nổi Cecum (paper 0.23 → ta 0.242); Colorectal
+   cancer còn tệ hơn paper.
+2. Các lớp yếu đều có precision cao / recall thấp (Cecum 0.400/0.174) — hình dạng của bias long-tail
+   — **nhưng cả ba đòn bẩy nhắm đúng bias đó đều trượt** (§6, §9): Balanced-Softmax −0.007, cRT
+   −0.013, logit adjustment +0.0094 với σ phình 9×. Không phải lệch ngưỡng, mà là **đặc trưng không
+   tách được**.
+3. 17 ảnh train cho 2 lớp; mất cân bằng 50.6×; và §7 đã đo được các cặp ảnh cosine 1.0000 mang **hai
+   nhãn khác nhau** → trần cứng cho mọi mô hình.
 
-| Run | Protocol | best | top3 | Notes |
+**Nhưng** đọc lại `train_one` thì phía mô hình cũng chưa cạn: nó chạy **AdamW 1e-4 hằng số, không
+scheduler**, augment chỉ `Resize` + lật ngang, không mixup, không label smoothing, không EMA, 30
+epoch. Đây là phát hiện làm đổi thứ tự ưu tiên — sửa công thức rẻ và chắc hơn đổi kiến trúc.
+
+> Ghi chú tự phê: `top3_tta` ăn tới +0.018…+0.032 **một phần vì** không có LR schedule → val dao
+> động mạnh → trung bình 3 checkpoint mới ổn định. Nói cách khác, một phần "đòn bẩy đo lường" mà §9
+> tự hào là đang **bù cho một công thức thiếu**. Câu này phải nằm trong báo cáo.
+
+### 10.2 Bậc thang, chi phí, và **nguồn của từng ý tưởng**
+
+| Bậc | Nội dung | Chi phí A100 | Ước lượng | **Nguồn ý tưởng** |
 |---|---|---|---|---|
-| Paper DenseNet-121 (Table 2) | 150 ep, batch 32, TITAN Xp, 1 run | 0.6504 | — | no error bar |
-| `B0` A100 (§9) | 30 ep, batch 32, bf16+TF32, 3 seeds | 0.6491 ± 0.0124 | 0.6710 ± 0.0103 | clean reproduction of 0.6504 |
-| `B0_densenet121_cpu` (this run) | **15 ep, batch 16**, fp32 CPU, 1 seed | 0.6844 | 0.6969 | ⚠️ protocol differs — see below |
-| `M0_mobilenetv3_cpu` (this run) | 15 ep, batch 16, fp32 CPU, 1 seed | 0.6191 | 0.6649 | 4.2M params, CPU-deployment model |
+| **M** | **Paired bootstrap + McNemar** thay cho việc so hai CI độc lập | 0 (đọc từ `.npz`) | không đổi điểm, **siết CI** | Dietterich 1998, *Approximate statistical tests for comparing supervised classification learning algorithms*; McNemar 1947; bootstrap cặp — Efron & Tibshirani. **Động cơ là của dự án**: §9 kết luận "CIs overlap → không claim được", đó là phép thử yếu nhất có thể dùng vì nó cộng cả độ khó bộ test vào hai bên |
+| **P2** | Công thức huấn luyện hiện đại, **giữ nguyên** CoAtNet-0 @288: cosine+warmup, LLRD 0.75, mixup/CutMix, label smoothing 0.1, EMA, 80 epoch | ~1.5 h (3 seed) + ~26 ph (`P2b`) | **+0.02…+0.04** | Wightman et al., *ResNet strikes back* ([2110.00476](https://arxiv.org/abs/2110.00476)) — đổi công thức ăn hơn đổi kiến trúc. Chi tiết từng thành phần: notebook §15c. **Số 80 epoch là đo tại chỗ**: `report/tables/24_duong_hoc_val.txt`, P1 đỉnh val ở epoch 27/30 |
+| **P3** | Backbone pretrain mạnh hơn (in22k / MIM): EVA-02-S, ConvNeXt-S in12k, Swin-B in22k, MaxViT-T. Bake-off 1 seed rồi mới 3 seed cho người thắng | ~1.5 h | +0.01…+0.03 | Lựa chọn EVA-02 cho ảnh nội soi lấy từ [arXiv 2410.21302](https://arxiv.org/abs/2410.21302) (EndoExtend24). **Phải làm sau P2**: backbone to hơn trên 4,758 ảnh sẽ overfit nếu chưa có mixup + LLRD |
+| **P4a** | **Domain pretrain**: huấn luyện backbone trên HyperKvasir (10,662 ảnh, 23 lớp GI) rồi mới fine-tune GastroVision | ~1.5 h + tải ~4 GB | **+0.03…+0.08** (ít chắc chắn nhất) | HyperKvasir: [Nature Sci Data 2020](https://www.nature.com/articles/s41597-020-00622-y), [datasets.simula.no/hyper-kvasir](https://datasets.simula.no/hyper-kvasir/). Nguyên tắc "SSL/pretrain in-domain thắng pretrain ảnh tự nhiên": [GastroNet-5M, Gastroenterology 2025](https://www.sciencedirect.com/science/article/pii/S001650852505797X) và [Med Image Anal 2024](https://www.sciencedirect.com/science/article/pii/S1361841524002238). **Bằng chứng nội bộ mạnh hơn cả hai**: §19d đo được linear probe mất 9.5 điểm vì "đặc trưng ImageNet là đặc trưng ảnh tự nhiên, các tầng *đầu* mới phải dịch chuyển" |
+| **P4b** | SSL (DINO/MAE) trên 99,417 ảnh không nhãn của HyperKvasir | nhiều giờ | — | cùng nguồn P4a; chỉ làm nếu dư ngân sách |
+| **P5** | **Cosine classifier + prototype init** cho các lớp 6–17 ảnh | ~0 | +0.005…+0.02 | Chen et al., *A Closer Look at Few-shot Classification* ([1904.04232](https://arxiv.org/abs/1904.04232)); Qi et al., *Low-shot learning with imprinted weights* ([1712.07136](https://arxiv.org/abs/1712.07136)). Khác B3/B4 về **cơ chế**: sửa hình học không gian đặc trưng, không sửa trọng số loss — nên không dính lý do khiến B3/B4 phẳng |
 
-**Read the 0.6844 with both hands on the caveats:**
+**Tổng ~5.3 h A100.** Cột "ước lượng" là **phỏng đoán**, không phải số đo — neo vào hai đòn bẩy đã
+đo được (224→288 cho +0.0143; `best`→`top3_tta` cho +0.03).
 
-1. **The protocol is not the paper's.** Batch 16 (not 32) and 15 epochs (not 30/150) — batch size
-   changes the effective LR/update count, which §5 of the notebook explicitly forbids when matching
-   0.6504. This run is a *CPU feasibility measurement*, not a third reproduction attempt.
-2. **One seed.** The A100 3-seed spread on the same architecture was ±0.0124 with per-seed `best` of
-   0.6666 / 0.6394 / 0.6414 — a lucky seed alone can explain a large part of the gap to 0.6844,
-   and Gate 0a showed different hardware = a different model even at the same seed.
-3. What the point estimate *does* suggest, consistent with §9: smaller batches + more update steps
-   per epoch may be worth a controlled ablation on GPU (batch 16 vs 32 at equal wall-clock).
-4. Val peaked at **epoch 7 of 15** (0.6806) — the 15-epoch budget was not the binding constraint,
-   mirroring the A100 finding (peak at 12/30).
+### 10.3 Hai kỷ luật bắt buộc
 
-### Cost and deployment numbers (the reason this notebook exists)
+1. **Ngưỡng phân giải.** CI bootstrap là **±0.035** và σ giữa seed chỉ 0.0016 (§9). Bất kỳ bậc nào
+   dưới ~0.02 sẽ **không chứng minh được** trên bộ test 1,586 ảnh này. Vì vậy P2 được gộp thành một
+   **bundle** rồi mới ablate 2–3 thành phần lớn nhất — không đo lẻ từng thứ.
+2. **Kiểm rò rỉ trước khi công bố P4.** Cả HyperKvasir lẫn GastroVision đều từ bệnh viện Na Uy, và
+   HyperKvasir có đúng những tên lớp `dyed-lifted-polyps` / `dyed-resection-margins` như
+   GastroVision → **khả năng trùng ảnh là có thật**. Phải chạy lại pipeline MD5 + near-dup
+   MobileNetV3 của §7 giữa HyperKvasir và **test split** trước khi trích dẫn bất kỳ con số P4 nào.
+   Trùng mà không kiểm thì kết quả vô giá trị; kiểm mà sạch thì đó là một đóng góp Data-70% nữa.
 
-| | DenseNet-121 | MobileNetV3-L |
+### 10.4 Đã quyết định KHÔNG làm
+
+| Việc | Vì sao |
+|---|---|
+| Thêm seed (`SEEDS=[0,1,2,3,4]`) | đã bác ở §9 — σ đã 0.0016, cái chi phối là ±0.035 của bộ test |
+| Thêm biến thể loss imbalance (LDAM-DRW, focal…) | B3/B4/logit-adjust đều phẳng; nút thắt không nằm ở loss |
+| Đóng băng backbone ở mọi mức | §19d: cả ba điều kiện freeze đều thua > 2σ |
+| Logit adjustment ở dạng hiện tại | không lặp lại qua seed (§9); τ đang fit trên val logits của `best` rồi áp lên điểm `top3_tta` — lệch phân phối. Sửa được nhưng phải lưu cả 3 state và train lại, **không free** |
+| GastroNet-5M làm phụ thuộc của kế hoạch | kiểm tra 2026-08-27: repo HF `tgwboers/GastroNet-5M_Pretrained_Weights` **chỉ có `README.md`, không có file weights** (đã chuyển sang "Theta Vision Cortex") → coi như phải xin quyền, không đưa vào đường găng |
+
+### 10.5 Trạng thái thực thi
+
+Tất cả **đã code xong 2026-08-27** và nằm trong notebook dưới dạng cờ bật/tắt, để một lần
+`Run all` chạy hết. **Bậc M đã chạy 2026-08-28** (`SESSION = 0`, 0 GPU) — kết quả và hai lỗi nó
+làm lộ ra nằm ở §10.8. **Bậc P2 + P2b đã chạy 2026-08-31** (`SESSION = 1`, T4) — §10.9.
+**Phiên 4 đã chạy 2026-08-31** (`SESSION = 4`, T4): `P2c`, `P2b` đủ 3 seed, `A1`, `A2` — §10.10.
+🔒 **Vòng 2 đã đóng ở P2 (01-09-2026): `P3` / `P4` / `P5` sẽ không chạy** — hết quota GPU. `P3`
+đã bị cắt vì lý do chuyên môn từ trước (đòn bẩy backbone đứng một mình chỉ +0,0034); `P4` và `P5`
+dừng vì hết giờ máy, không phải vì hết lý do. Cả hai đi vào báo cáo dưới dạng **hướng phát triển
+tiếp**, và `P4` là bậc mạnh nhất trong số đó (§10.2, và `A1` ở §10.10 là bằng chứng đo được cho
+nó). Bảng dưới giữ nguyên chi phí ước tính như bản ghi của kế hoạch.
+
+| Bước | Mục | Cờ | Chi phí A100 | Trạng thái |
+|---|---|---|---|---|
+| **P2** công thức hiện đại | §15c | `RUN_P2`, `RUN_P2_RECIPE_CHECK` | ~2 h | ✅ **xong 31-08 (T4)** — §10.9 |
+| **P2c/P2b/A1/A2** lấp lô-gic | §15c, §21 | `RUN_P2C`, `RUN_P2B_FULL`, `RUN_ABLATIONS` | ~1,4 h | ✅ **xong 31-08 (T4)** — §10.10 |
+| **P3** bake-off backbone | §15d | `RUN_P3` | ~2 h | 🔒 **bỏ vì lý do chuyên môn** (trước khi hết quota) — đòn bẩy backbone đứng một mình đo được +0,0034 |
+| **P4** pretrain HyperKvasir | §15e | `RUN_P4` | ~2,5 h | 🔒 **không chạy — hết quota**; bậc mạnh nhất còn lại, chuyển thành hướng phát triển tiếp |
+| **P5** đầu cosine | §15f | `RUN_P5` | ~1,5 h | 🔒 **không chạy — hết quota**; kỳ vọng có tăng lại (§10.9 phát hiện 3) nhưng không kịp đo |
+| **M** paired bootstrap + McNemar | §16b | luôn chạy | 0 | ✅ xong 28-08 (§10.8) + chạy lại 31-08 |
+| | | | **~8 h** | |
+
+**8 giờ không vừa một phiên Colab** — nhưng resume xử lý được: mỗi seed xong là ghi `.npz` xuống
+Drive, phiên sau nạp lại và chỉ chạy phần còn thiếu. Cách chia phiên nằm ở §10.6.
+
+### 10.6 Công tắc phiên (§6b của notebook)
+
+Sáu cờ nằm rải rác ở sáu ô khác nhau — sửa tay giữa các phiên là chuyện sớm muộn sẽ quên một cái.
+Notebook có **§6b** với đúng **một biến `SESSION`** để bật cả bộ:
+
+| `SESSION` | Chạy gì | A100 | T4 | Trạng thái |
+|---|---|---|---|---|
+| `0` | không huấn luyện gì — đọc lại các run cũ + §16b | ~10 ph | ~10 ph | ✅ 28-08 (§10.8) |
+| `1` | `P2` + `P2b` | ~2 h | **~7 h** *(đo thật)* | ✅ 31-08 (§10.9) |
+| `2` | `P4` | ~2,5 h | ~8,8 h ⚠️ sát trần | 🔒 **không chạy — hết quota** |
+| `3` | `P3` + `P5` | ~3,5 h | ~12,3 h ⚠️ không vừa 1 phiên | 🔒 **không chạy** — `P3` bỏ vì lý do chuyên môn, `P5` vì hết quota |
+| `4` | `P2c` + `P2b` đủ 3 seed + `A1`/`A2` | ~1,4 h | **5,6 h** *(đo thật)* | ✅ 31-08 (§10.10) |
+| `"all"` | tất cả, kể cả Gate 0a | ~9,4 h | ~33 h | — |
+| `"manual"` | không đụng cờ nào — mỗi ô giữ mặc định của nó | — | — | — |
+
+⚠️ **Cột T4 của bảng này từng sai gần một nửa** (5,5 / 7 / 10 h) vì suy ra từ A100 bằng hệ số 2,75×
+đoán bừa. Hệ số thật đo được ở phiên 1 là **~3,5×**, và các con số trên đã tính lại theo nó. Riêng
+phiên 4 thì suy ra từ **số đo trực tiếp** của phiên 1, không qua hệ số — xem §6b của notebook.
+
+Thứ tự đề xuất là **0 → 1 → 4**, không phải chạy tuần tự hết:
+
+* **`SESSION = 0` trước tiên** vì bậc **M** không tốn một epoch nào mà lại là thứ duy nhất có thể
+  biến các dòng *"CI chồng nhau → chưa kết luận được"* ở §9 thành kết luận thật. Đây là điểm có
+  tỉ lệ giá trị/chi phí cao nhất trong toàn bộ vòng 2.
+* **`P2` là điểm quyết định**, không phải một bậc trong chuỗi: nếu `P2 − P1 < +0,02` thì `P3` (vốn
+  chạy *dưới* công thức của `P2`) mất phần lớn lý do tồn tại → bỏ luôn, đi thẳng `SESSION = 2`.
+  Nếu `P2` tăng nhưng `P2b − B0 ≈ 0` thì công thức hợp riêng với hybrid và `P3` mới đáng ~3,5 h.
+* Ngưỡng `+0,02` lấy từ CI bootstrap ±0,035 ở §9 — dưới mức đó thì bộ test 1.586 ảnh này không
+  chứng minh được gì, dù chạy bao nhiêu seed.
+
+> ✅ **Đã chạy xong 2026-08-31 (§10.10).** Cả bốn hạng mục dưới đây đều có số; ba hạn chế mà nó nhắm
+> vào đã được xoá khỏi `report/BAO_CAO.md` §9. Phần bên dưới giữ nguyên làm **hồ sơ lý do chọn phiên
+> 4**, vì kết luận nó thu được (`công thức × kiến trúc`, không phải `× độ phân giải`) **ngược** với
+> phỏng đoán ngầm lúc lên kế hoạch — và đó chính là lý do phải chạy chứ không suy đoán.
+>
+> ~~**Phiên tiếp theo, nếu còn quota:** `P2c` seed 1+2 (~3,3 h T4) trước `SESSION = 2`.~~
+> 🔒 **Không còn quota — không phiên nào chạy nữa (chốt 01-09-2026).** Chỗ yếu mà nó nhắm vào vẫn
+> còn: số hạng tương tác +0,0497 tựa lên một ô **1 seed**, và đó là một **hạn chế của báo cáo**,
+> không phải một việc đang chờ.
+
+**Cập nhật 2026-08-31 sau phiên 1: phiên tiếp theo nên là `SESSION = 4`, không phải 2 hay 3.** Lý do
+là `P2` đã vượt ngưỡng, nên câu hỏi đổi từ *"còn đòn bẩy nào nâng được con số"* sang *"tuyên bố hiện
+tại đã đủ chống đỡ chưa"* — và câu trả lời là chưa, ở ba chỗ đã được ghi tên thành hạn chế 2, 3, 5
+của `report/BAO_CAO.md` §9:
+
+| Hạng mục của phiên 4 | Giờ T4 | Lỗ nó lấp |
 |---|---|---|
-| Training, 15 ep full data (12-thread CPU) | **225 min** (~810 s/ep) | 82 min (~300 s/ep) |
-| Inference, batch 1, fp32 | 72.1 ms/img | **21.7 ms/img** |
-| Parameters / size | 7.0M / 27.9 MB | 4.2M / 16.9 MB |
+| **`P2c`** CoAtNet-0 @224 + công thức mới, 1 seed | ~1,1 | **Ô còn trống của bảng 2×2.** `P2`/`P1` so ở 288 còn `P2b`/`B0` so ở 224 → đòn bẩy +0,0443 vẫn lẫn giữa *công thức × kiến trúc* và *công thức × độ phân giải*. `P2c` đặt hybrid ở **đúng 224 của `P2b`**, nên `P2c − P0` so trực tiếp được với `P2b − B0`. Đây là lỗ **logic** trong tuyên bố mạnh nhất của báo cáo |
+| **`P2b`** seed 1 + 2 | ~3,1 | Kết quả **âm** quan trọng nhất (−0,0024) hiện chỉ 1 seed → chỉ đọc được ở mức *"không có dấu hiệu dương"*. Rubric đòi *"negative results included"*; một kết quả âm có σ đáng giá hơn nhiều |
+| **`A2`** Balanced-Softmax, 1 seed | ~0,4 | Ablation cân bằng lớp — thuộc hạng mục **30%**, nặng điểm nhất. Số đang dùng là nhóm A: 1 seed, quy tắc cũ, **trọng số không còn tồn tại**, và §2 tự ghi *"đừng trích các số này"* |
+| **`A1`** Swin-T in22k, 1 seed | ~0,4 | Ablation *"nguồn pretrain mạnh hơn mua thêm bao nhiêu"* — hứa ở §5.1 của báo cáo, **chưa từng chạy** |
 
-MobileNetV3 gives up 0.065 macro-F1 under `best` (0.6191 vs 0.6844) but only 0.023 under
-`top3_tta` (0.6737 vs 0.6883, CIs overlapping heavily) at **3.3× lower latency** — for a
-CPU-only deployment the checkpoint-ensemble + TTA levers close most of the architecture gap,
-which is the same story §9 told on GPU. Artifacts: `checkpoints_cpu/*.npz|pt`, figures in
-`outputs_cpu/`, executed notebook with all cell outputs in git.
+**Thứ tự, và phiên 4 KHÔNG thay thế cái gì.** Các số `SESSION` là một **thực đơn, không phải bậc
+thang** — chúng được đánh số theo thứ tự *viết ra*, không phải thứ tự *nên chạy*. Phiên 4 đi trước vì
+nó rẻ nhất (5,0 h) và vì nó sửa những tuyên bố hiện **chưa được chống đỡ**, thay vì cộng thêm một con
+số lên trên chúng. Nhưng hai bậc còn lại không tương đương nhau:
+
+* **`SESSION = 2` (P4, domain pretrain trên HyperKvasir) là bậc mạnh nhất còn lại và nên đi ngay sau
+  phiên 4** nếu còn quota. Báo cáo kết luận **bốn đường độc lập** rằng nút thắt là biểu diễn đặc
+  trưng ở phần đuôi — và P4 là lever **duy nhất** còn lại *thêm dữ liệu trong domain* thay vì đổi mô
+  hình. Lý lẽ của nó là chính phép đo §19d của nhóm (linear probe mất 11,1 điểm vì *"đặc trưng
+  ImageNet là đặc trưng ảnh tự nhiên, và chính các tầng đầu mới phải dịch chuyển"*), đúng thứ mà
+  pretrain trên 10.662 ảnh nội soi nhằm vào. Kỳ vọng **+0,03…+0,08 — lớn nhất trong mọi bậc**, và
+  cũng ít chắc chắn nhất (§10.2).
+  ⚠️ Hai rủi ro thực tế: ước tính ~8,8 h là **suy ra** ×3,5 từ A100 chứ không phải đo, trong khi ngân
+  sách là 9,0 h và trần Kaggle là 12 h — gần như không còn dư; và nó cần tải ~4 GB. Phải đọc output
+  kiểm rò rỉ của `RUN_P4` trước khi tin bất kỳ con số nào của nó (quyết định thiết kế #3, §10.9).
+* **`SESSION = 3`: bỏ `P3`, để `P5` là "có thể".** `P3` chạy *dưới* công thức của `P2` nên chỉ đổi
+  backbone — đúng đòn bẩy vừa đo được là +0,0034, tức trong nhiễu. `P5` đã lấy lại lý do tồn tại
+  (§10.9 phát hiện 3) nhưng nó *nâng con số*, mà con số đã vượt baseline với CI không chồng lấn, còn
+  phép đo thì không phân giải nổi mức tăng tiếp theo.
+
+🔒 **Chốt 01-09-2026: không phiên nào trong hai bậc trên được chạy — hết quota GPU.** Phân tích bên
+trên giữ nguyên vì nó vẫn đúng về *thứ tự đáng chạy*, và vì nó là cơ sở để báo cáo xếp `P4` lên đầu
+mục hướng phát triển tiếp. Trạng thái chính thức: §10.5.
+
+`P1` luôn bật ở mọi phiên (chỉ đọc lại `.npz`, vài giây) vì §15c, §16 và §19 đều trỏ tới nó.
+`_plan()` mặc định **tắt hết** rồi mới bật lại từng cờ, nên sau này thêm một bậc `P6` vào
+`_ALL_FLAGS` thì các phiên cũ tự động không chạy nó, thay vì lặng lẽ dài thêm vài giờ.
+
+### 10.7 Nhật ký GPU — chống trộn phần cứng giữa các seed
+
+Gate 0a (§3) đo được tính tất định giữ **trong một loại GPU** chứ không giữ **giữa hai loại**:
+cùng seed, A100 cho `[0.428608, 0.549646, 0.551532]` còn T4 cho `[0.430615, 0.540379, 0.541930]`.
+Vì vòng 2 chia thành nhiều phiên và Colab cấp GPU nào là tuỳ lúc, có một kịch bản hỏng rất dễ xảy
+ra: seed 0–1 của `P2` chạy A100, phiên sau được T4 và chạy nốt seed 2 → **`σ` của `P2` trộn hai
+loại phần cứng**, mà `σ` chính là thứ toàn bộ lập luận ở §9 dựa vào. Nhìn vào `.npz` không thấy
+được lỗi này.
+
+Nên `run_seeds` giờ ghi loại GPU của **từng seed** vào `checkpoints/gpu_log.json` (trên Drive) ngay
+khi seed đó train xong — ghi ngay chứ không đợi cả tag chạy hết, vì phiên Colab hay đứt giữa chừng.
+Sau mỗi tag, `gpu_log_check()` in cảnh báo nếu các seed không cùng một loại máy; §6b cũng kiểm kê
+đầu phiên và báo nếu máy hiện tại khác loại với máy đã dùng cho các cấu hình đã có. Đọc lại kết quả
+cũ trên máy khác loại thì không sao — chỉ **huấn luyện thêm seed** mới là vấn đề.
+
+Các run trước 2026-08-28 không có bản ghi này (in ra `khong ro`); theo §3 chúng đều chạy trên A100.
+
+**Cập nhật 2026-08-29 — vòng 2 nhiều khả năng chạy trên máy khác loại.** Colab đã hết compute unit,
+nên vòng 2 chuyển sang **Kaggle** (P100 hoặc T4, ~30 h/tuần miễn phí). Điều này biến cảnh báo ở trên
+từ giả thuyết thành chuyện chắc chắn xảy ra: `P2` sẽ chạy trên P100/T4 còn `P1` đang là A100, nên
+phép so `P2 − P1` **vắt qua hai loại phần cứng**, lệch ~0,010 theo Gate 0a — cùng bậc độ lớn với
+ngưỡng quyết định +0,02.
+
+Cách xử lý đã chọn: **chạy trước, vá sau nếu cần.** Nếu `P2 − P1` ra ngoài vùng ±0,015…+0,025 thì
+0,010 không đổi được kết luận nào. Chỉ khi nó rơi đúng vào vùng tranh chấp mới cần chạy lại `P1` trên
+cùng loại máy làm mỏ neo (~1,8 h T4, và phải đặt **tag mới** vì `.npz` cũ sẽ bị resume đọc lại).
+Chi trước 1,8 giờ cho một mỏ neo có thể không cần đến là sai thứ tự.
+
+Kaggle cũng buộc phải tách `CKPT_DIR` (nơi ghi) khỏi `CKPT_READ_DIRS` (nơi đọc): `/kaggle/working`
+ghi được nhưng chỉ vĩnh viễn sau `Save Version`, còn `/kaggle/input/*` chỉ đọc. Mọi chỗ đọc
+checkpoint đi qua `ckpt_path()`; `gpu_log_read()` gộp nhật ký của **mọi** phiên nhìn thấy được, nếu
+không thì mỗi phiên Kaggle đều báo `khong ro` và cảnh báo trộn phần cứng thành vô dụng.
+
+#### Hai cái bẫy đã dính khi chuyển sang Kaggle (2026-08-29)
+
+**1. `import google.colab` thành công trên Kaggle.** Phép nhận diện `try: from google.colab import
+drive / except ModuleNotFoundError` là **sai**: Kaggle cài sẵn gói đó, nên import chạy ngon và
+notebook đi thẳng vào nhánh Colab rồi chết ở `drive.mount()`. Dấu hiệu đúng là **`/var/colab/hostname`**
+— chính là thứ `drive.mount()` kiểm tra bên trong trước khi chịu mount, đọc được từ traceback của
+nó. Kaggle được nhận ra **trước**, bằng `KAGGLE_KERNEL_RUN_TYPE` hoặc `/kaggle/working`. Ô đó giờ in
+ra môi trường nó tự nhận, để lần sau sai thì thấy ngay dòng đầu tiên thay vì thấy traceback.
+
+**2. Ô kiểm tra cú pháp đã *giấu* một lỗi thật.** Luật cũ là "ô nào có dòng bắt đầu bằng `!` hoặc `%`
+thì coi là ô magic, bỏ qua". Một chuỗi bị xuống dòng giữa chừng làm dòng kế tiếp bắt đầu bằng `!!`
+→ cả ô được miễn, `ast.parse` không bao giờ chạy, và một `unterminated f-string literal` đi lọt qua
+cả bước kiểm tra lẫn `python build_notebook.py` (generator chỉ coi nội dung ô là **dữ liệu** trong
+`r"""..."""`, nên nó không parse gì cả). Chỉ đến khi chạy thật ô đó mới nổ.
+
+Luật đã sửa trong `check_cells.py`: **thay từng dòng magic bằng `pass` rồi parse phần còn lại** — ô
+magic thật vẫn sạch, còn chuỗi hỏng thì vẫn hỏng, không ô nào được miễn nữa. Script tự kiểm tra
+chính nó trên đúng đoạn code đã gây lỗi trước khi kiểm notebook.
+
+Bài học chung cho cả hai: **một luật "bỏ qua" đặt sai chỗ thì tệ hơn không có luật nào**, vì nó biến
+một lỗi ồn ào thành một lỗi im lặng. Cả hai lần đều là như vậy — nhận diện môi trường bỏ qua nhánh
+đúng, và trình kiểm tra bỏ qua ô hỏng.
+
+### 10.8 Phiên 0 đã chạy (A100, 2026-08-28) — bậc **M** không cứu được kết luận
+
+`SESSION = 0`, không huấn luyện một epoch nào. Phần cơ học đạt hết: đúng 7 tag trên Drive với đủ
+số seed, cả 5 bậc bị bỏ qua in đúng thông báo, và **mọi con số đọc lại khớp §9 tới từng chữ số**
+(`P1 = 0,6961 ± 0,0016`, `B0 = 0,6676`, `S0 = 0,6851`, `P0 = 0,6818`).
+
+Nhưng kết quả của bậc **M** thì không như kỳ vọng — và đó là phần đáng viết vào báo cáo.
+
+| A vs `B0_densenet121` | d macro-F1 | CI95 của d | McNemar b/c | p |
+|---|---|---|---|---|
+| `S0_swin_t` | +0,0207 | [−0,0150, +0,0557] | 80/62 | 0,1534 |
+| `P0_coatnet0` | +0,0037 | [−0,0305, +0,0382] | 87/70 | 0,2015 |
+| `P1_coatnet0_288` | +0,0173 | [−0,0249, +0,0590] | 94/64 | **0,0208** |
+
+**Kết luận trung thực:** `P1` hơn `B0` một cách có ý nghĩa **ở mức từng tấm ảnh** (McNemar p = 0,021
+trên 158 ảnh hai mô hình bất đồng), nhưng **không** chứng minh được ở **macro-F1** — chỉ số mà bài
+báo và toàn bộ báo cáo này dùng. Hai phép kiểm trả lời hai câu hỏi khác nhau và cả hai đều đúng;
+câu phải viết là câu thứ hai, vì macro-F1 mới là thứ được báo cáo.
+
+#### Phát hiện 1 — ghép cặp **không** làm CI hẹp lại, và lý do lại là chẩn đoán của chính §17
+
+Kỳ vọng ban đầu (đã ghi sai trong docstring của `paired_bootstrap`) là CI của hiệu sẽ hẹp hơn nhiều
+so với CI riêng lẻ. Đo thực tế thì **ngược lại**:
+
+| | độ rộng CI95 |
+|---|---|
+| CI riêng của `P1` | 0,0697 |
+| CI của Δ (`P1 − B0`) | **0,0839** |
+
+Ghép cặp chỉ triệt tiêu được sai số ở những ảnh mà hai mô hình *cùng* đúng hoặc *cùng* sai — tức là
+ở các lớp nhiều ảnh, nơi macro-F1 gần như **không có** phương sai để triệt tiêu. Phương sai của
+macro-F1 nằm ở các lớp 6 ảnh (`Mucosal inflammation` F1 = 0,000 / 6 ảnh; `Colon diverticula` 6 ảnh),
+mà ở đó hai mô hình gần như **độc lập** vì cả hai đều đoán gần như ngẫu nhiên → phương sai của hiệu
+bằng **tổng** hai phương sai chứ không phải hiệu.
+
+Nói cách khác: **phép ghép cặp thất bại vì đúng cái nút thắt mà §17 đã chỉ ra.** Đây là một xác nhận
+**độc lập** cho chẩn đoán "thiếu dữ liệu ở lớp hiếm", đến từ một hướng hoàn toàn khác (thống kê so
+sánh chứ không phải bảng per-class) — nên nó vào báo cáo như một kết quả, không phải một lỗi.
+
+#### Phát hiện 2 — `PAIR_SEED = 0` làm yếu **cả ba** so sánh cùng lúc
+
+`B0` là mẫu số chung của mọi cặp, và seed 0 tình cờ là seed **tốt nhất** của nó (0,6768 so với trung
+bình 0,6676 trên 3 seed). May mắn của riêng nó bị trừ vào cả ba dòng:
+
+| Cặp | d ở seed 0 | seed 1 | seed 2 | TB 3 seed |
+|---|---|---|---|---|
+| `P1 − B0` | **+0,0173** | +0,0343 | +0,0338 | **+0,0285** |
+| `P0 − B0` | **+0,0037** | +0,0200 | +0,0189 | +0,0142 |
+| `S0 − B0` | +0,0208 | +0,0241 | +0,0077 | +0,0175 |
+
+`PAIR_SEED = 0` là mặc định lúc viết code, không phải một lựa chọn có lý do. Nhưng vì điều này chỉ
+lộ ra **sau** khi đã nhìn kết quả, đổi sang một seed khác là chọn số liệu. Cách xử lý đã áp dụng:
+**in hết cả ba seed**, thêm dòng biên độ, và thêm một dòng `ens3seed` (trung bình softmax 3 seed —
+bỏ hẳn xổ số seed, nhưng so **hệ thống** chứ không so mô hình đơn nên vẫn là dòng riêng, đúng quy
+ước ensemble ở §16). Người đọc tự thấy dao động; không ai chọn hộ họ.
+
+#### Phát hiện 3 — hiệu chỉnh logit trên `P1` ≈ 0, và điều đó hạ kỳ vọng của **P5**
+
+§16 đo lại: `τ*` chọn trên val ra **0,9 / 0,5 / 0,0** tuỳ seed, lãi test tương ứng **+0,0011 /
++0,0271 / +0,0000**. Trung bình cao hơn +0,0094 nhưng σ phình từ 0,0016 lên 0,0139 — mức tăng là
+của **một** seed, không phải của phương pháp (kết luận này đã có từ §9, nay lặp lại y nguyên).
+
+**P5** (đầu phân loại cosine) nhắm vào **cùng một thiên lệch** — ưu thế của lớp nhiều ảnh trong lớp
+phân loại cuối. Không phải bằng chứng quyết định, vì P5 sửa lúc *huấn luyện* còn hiệu chỉnh logit chỉ
+vá lúc *suy luận*; nhưng nó là dữ kiện trực tiếp nhất hiện có về nút thắt đó, và nó nói: **không có
+gì để ăn ở đây trên `P1`.** Cộng với việc `P3` vốn đã xếp cuối từ vòng 1, **`SESSION = 3` yếu đi từ
+cả hai phía** và nên là thứ cuối cùng được cân nhắc, nếu còn cân nhắc.
+
+#### Hai con số mạnh nhất hiện có (đều đã có sẵn, 0 GPU)
+
+* **Ensemble 3 seed của `P1`: macro-F1 = 0,7221, CI95 [0,6728, 0,7609]** — CI **không** chồng lấn
+  0,6504 → được quyền viết "vượt baseline công bố". Dòng riêng: tốn 3 lần huấn luyện.
+* **Ensemble 4 kiến trúc, chọn tổ hợp trên val: test = 0,7242** — và tổ hợp tốt nhất trên val cũng
+  chính là tốt nhất trên test (chênh +0,0000), nên không có rò rỉ quy trình ở đây.
+
+#### Điều này đổi gì trong kế hoạch
+
+Không đổi thứ tự. `SESSION = 1` vẫn là bước tiếp theo, vì **P2 là bậc duy nhất còn lại có thể nâng
+số của một mô hình đơn** — mà mô hình đơn mới là thứ §9 so với bài báo. Nhưng ngưỡng quyết định giờ
+có thêm một cách đọc: nếu `P2` không vượt `+0,02`, thì cùng với phát hiện 3 ở trên, **cả `SESSION =
+3` lẫn phần lớn vòng 2 đều nên dừng**, và báo cáo chốt ở kết quả âm có bằng chứng — vốn đã là một
+kết quả tốt, và giờ có ba nguồn độc lập cùng chỉ về một nguyên nhân.
+
+### 10.9 Phiên 1 đã chạy (T4 / Kaggle, 2026-08-31) — P2 vượt ngưỡng, và một phát hiện ngoài kế hoạch
+
+`SESSION = 1`, notebook chạy hết 49 ô code, **0 lỗi**, tốn **94 phút** trong ngân sách 9 h: `P2` đã
+có đủ 3 seed từ phiên 2026-08-30 nên được đọc lại từ `.npz`, chỉ `P2b` thực sự huấn luyện. Bảng:
+`report/tables/15b_*`, `15c_*`, `17b_*`, `21_*`.
+
+#### Phát hiện 1 — `P2` vượt ngưỡng quyết định, điều khoản "dừng vòng 2" KHÔNG kích hoạt
+
+§10.8 đặt trước: nếu `P2 − P1 < +0,02` thì bỏ `P3` và phần lớn vòng 2. Đo được (quy tắc **`top3`** —
+quy tắc đã chốt; `report/tables/17b_so_sanh_theo_cap.txt`):
+
+| A vs B | Δ macro-F1 (TB 3 seed) | seed 0 / 1 / 2 | dòng `ens3seed` |
+|---|---|---|---|
+| `P2 − P1` | **+0,0443** | chưa KL / **có ý nghĩa** / **có ý nghĩa** | **+0,0414 [+0,0053, +0,0760]** |
+| `P2 − B0` | **+0,0518** | chưa KL / **có ý nghĩa** (McNemar p = 0,0002) / **có ý nghĩa** (p = 0,0012) | **+0,0430 [+0,0147, +0,0691]** |
+
+Và `P2` là **cấu hình đầu tiên** có CI riêng **không chồng lấn** 0,6504: `0,7166 [0,6660, 0,7531]`.
+Bốn cấu hình vòng 1 vẫn "chưa kết luận được" (`tables/17_bootstrap_ci.txt`).
+
+⚠️ **Nhãn quy tắc: +0,0443 là dưới `top3`, không phải `top3_tta`.** Bảng 15c đọc cùng đòn bẩy
+dưới `top3_tta` và ra **+0,0471**. Hai con số đến từ hai phép tính khác nhau — 17b lấy trung bình
+các Δ ghép cặp *từng seed*, 15c lấy hiệu của hai *trung bình 3 seed* — nên chúng không phải cùng
+một đại lượng. Điều đáng nói là đòn bẩy này **không phụ thuộc quy tắc chấm điểm**: +0,0443 và
++0,0471 đều vượt ngưỡng 0,035. (Bản đầu của mục này ghi sai nhãn là `top3_tta`;
+`report/check_numbers.py` bắt được.)
+
+`PROPOSED_TAG` đã đổi sang `P2_coatnet0_288_modern` (ô 19b) vì cả hai cổng của nó đều mở: mức tăng
+lớn hơn ngưỡng phân giải ±0,035, **và** `P2b` đã trả lời được câu "công thức hay kiến trúc".
+
+#### Phát hiện 2 — đòn bẩy **không** phải "công thức hiện đại" nói chung: `P2b` là kết quả âm sạch
+
+Cùng công thức đó áp lên backbone của baseline (`tables/15c_P2_tach_don_bay.txt`):
+
+| Cặp | Backbone / độ phân giải | Δ vs công thức cũ |
+|---|---|---|
+| `P2 − P1` | CoAtNet-0 @288 | **+0,0471** |
+| `P2b − B0` | DenseNet-121 @224 | **−0,0024** (1 seed) |
+
+Trên val còn rõ hơn: `P2b` đỉnh 0,6539 so với `B0` 0,6600 — công thức mới làm DenseNet **tệ đi**.
+Nên trong báo cáo tuyệt đối không được viết "công thức hiện đại đáng +0,047" như một phát biểu
+chung; phải viết là **công thức × (kiến trúc hoặc độ phân giải)**, và dòng `P2b` phải đi kèm.
+
+⚠️ **Bảng 2×2 còn thiếu một ô.** `P2`/`P1` so ở 288, `P2b`/`B0` so ở 224 → chưa tách được
+`công thức × kiến trúc` khỏi `công thức × độ phân giải`. Ô còn trống là **CoAtNet-0 @224 + công
+thức mới** (~52 phút T4, 1 seed). Và `P2b` hiện chỉ 1 seed nên chưa có σ để xếp hạng.
+
+#### Phát hiện 3 — cái bẫy nằm ở **σ**, không ở lever: `P5` hồi sinh
+
+Output lưu trong `.ipynb` vẫn in `P1` (nó sinh ra *trước* khi `PROPOSED_TAG` được đổi), nên con số
+của `P2` được tính lại từ logits đã lưu bằng `report/offline_tables.py` →
+`report/tables-offline/31_he_thong_p2_hieu_chinh_logit.txt`:
+
+| Lần chạy / mô hình | quy tắc | τ* mỗi seed | TB Δ | độ lệch |
+|---|---|---|---|---|
+| **A100**, `P1` (§10.8) | `top3_tta` | 0,9 / 0,5 / 0,0 | +0,0094 | 0,0016 → 0,0139 **×8,7 → BỊ LOẠI** |
+| T4, `P1` | `top3` | 0,2 / **0,0** / 0,1 | +0,0052 | 0,0068 → 0,0095 (×1,40 → **giữ, sát mép**) |
+| **T4, `P2`** | `top3` | **0,5 / 0,5 / 0,3** | **+0,0143** | 0,0096 → **0,0088 co lại → giữ** |
+
+**Phát hiện 3 của §10.8 không sai về số liệu, nhưng sai về đối tượng.** Mẫu số của phép kiểm ×1,5 là
+σ, và ở vòng A100 σ của `P1` là **0,0016** — nhỏ hơn 4 lần cùng cấu hình đo trên T4. Với mẫu số như
+thế thì **bất kỳ** lever thêm chút phương sai nào cũng thất bại phép kiểm. Tiêu chí không phát hiện
+lever vô dụng; nó phát hiện rằng **σ của lần chạy đó nhỏ một cách không tái lập được** — và phát
+hiện 5 dưới đây cho biết chính xác vì sao.
+
+Trên T4, cùng tiêu chí **giữ** hiệu chỉnh logit cho cả `P1` lẫn `P2`. Nhưng chúng đạt theo hai cách
+khác nhau về chất: `P1` có Δ (+0,0052) **nhỏ hơn σ của chính nó**, một seed chọn τ* = 0, và σ phồng
+×1,40 (sát ngưỡng ×1,50); `P2` có Δ gấp 1,5 lần σ, τ* ổn định xa 0, và σ **co lại**. Lý do hợp lý:
+per-class của `P2` là precision **0,810** so với recall **0,690** — mô hình mạnh hơn thì phần thiên
+lệch còn lại chủ yếu là thiên lệch **prior**, đúng thứ mà hiệu chỉnh logit sửa.
+
+**`P5` (đầu cosine) lấy lại kỳ vọng** — nó nhắm đúng chỗ đó nhưng sửa lúc huấn luyện. Và bài học
+chung đắt hơn cả `P5`: **σ là cái thước dùng để chấp nhận hay loại mọi lever khác, nên một σ không
+tái lập được thì làm sai không phải một con số mà một QUYẾT ĐỊNH.**
+
+Hệ thống đề xuất mới, dưới quy tắc `top3` đã chốt:
+
+| | macro-F1 (3 seed) | vs paper 0,6504 | CI 95% (seed đầu) |
+|---|---|---|---|
+| `P2` + `top3` | 0,7298 ± 0,0096 | +0,0794 | — |
+| **`P2` + `top3` + hiệu chỉnh logit** | **0,7441 ± 0,0088** | **+0,0937** | [0,6986, 0,7736] **vượt** |
+| + ensemble 3 seed (dòng riêng) | 0,7587 | +0,1083 | [0,7110, 0,7924] **vượt** |
+
+#### Phát hiện 4 — ensemble nhiều kiến trúc giờ là kết quả **âm**
+
+Tổ hợp tốt nhất **chọn trên val** (`S0 + P1 + P2`) cho test **0,7130**, *thấp hơn* `P2` chạy một
+mình (0,7166) — `tables/20_donbay_ensemble_kientruc.txt`. Một khi đã có một mô hình vượt hẳn, ghép
+thêm mô hình yếu chỉ kéo xuống. Đòn bẩy 3 phải báo cáo là **âm**, không phải "+0,03" như vòng 1.
+(Tổ hợp cao nhất trên *test* là `B0 + P2` = 0,7283, chênh +0,0153 — dòng đó vẫn không được báo cáo,
+vì chọn tổ hợp bằng chính tập test là rò rỉ quy trình.)
+
+#### Phát hiện 5 — 4 cấu hình gốc đã bị huấn luyện lại trên T4; toàn bộ §9 và `report/tables/12–24` cũ đã bị thay thế
+
+Đây là thứ không nằm trong kế hoạch nào và là hệ quả quan trọng nhất của phiên này.
+
+Bằng chứng, ba tầng độc lập:
+
+1. `sec_per_epoch` trong `ckpt-t4/*.npz` là **32–56 s**, còn A100 đo được ~20 s cho `B0` — đúng
+   bậc chênh T4/A100, tức là các seed này **có** chạy huấn luyện.
+2. Bốn bảng phía **dữ liệu** giống nhau **từng byte** giữa hai vòng (`04_loc_lop_22`,
+   `05_chia_split`, `06_eda`, `09_bo_danh_gia`) → split, luật lọc lớp và bộ đánh giá **không**
+   đổi. Vậy nguyên nhân lệch số không thể là chia lại dữ liệu.
+3. Nhưng **mọi** con số của **mọi** cấu hình dưới **mọi** quy tắc đều lệch §9.
+
+Ba điều đó chỉ đồng thời đúng trong một trường hợp: **trọng số đã được huấn luyện lại**, chứ
+không phải "đọc lại `.npz` rồi tính lại từ logits đã lưu".
+
+Hai hệ quả trực tiếp:
+
+1. **`SELECTION_RULE` đã tự lật `top3_tta` → `top3`.** Quyết định thiết kế #1 ("khoá phiếu bầu ở
+   `B0`/`S0`/`P0`/`P1`") không cứu được, vì chính **bốn cử tri** đã bị train lại. Mọi con số ở §9
+   giờ nằm dưới một quy tắc khác **và** một bộ trọng số khác.
+2. **Câu khẳng định trong `report/README.md` là sai**, và chính nó là lý do việc train lại đi lọt:
+   *"Điểm macro-F1 không phụ thuộc phần cứng — cả 12 lượt chạy chính đều được khôi phục từ `.npz`."*
+   Câu đó đúng **nếu** resume thật sự xảy ra; nó không kiểm tra rằng resume **đã** xảy ra. Đã sửa.
+
+Nhưng nó đồng thời tặng không một phép **lặp lại A100 ↔ T4** hoàn chỉnh: cùng code, cùng split,
+cùng seed, 4 cấu hình × 3 seed × 6 quy tắc, 0 GPU để phân tích
+(`report/tables-offline/30_lap_lai_a100_vs_t4.txt`):
+
+| quy tắc | chênh trung bình (tuyệt đối) trên 4 cấu hình | lệch lớn nhất ở một seed |
+|---|---|---|
+| **`top3`** | **0,0046** | 0,0263 |
+| `top3_tta` | 0,0092 | 0,0310 |
+| `smooth` | 0,0153 | 0,0710 |
+| `best` | 0,0182 | 0,0435 |
+| `smooth_tta` | 0,0185 | 0,0717 |
+| `best_tta` | 0,0185 | 0,0428 |
+
+Bốn điều đọc ra được, tất cả đều 0 GPU:
+
+* **`top3` bền với phần cứng gấp ~4× các quy tắc một-checkpoint.** Đây là **lý lẽ thứ ba, độc lập**
+  cho luận điểm chính của báo cáo — bên cạnh "miễn phí" (0 epoch) và "giảm phương sai" ở §9. Cả ba
+  đều là lập luận về **chi phí và tái lập**, không phải về **độ lớn hiệu ứng**, đúng như §9 đã chốt.
+* **Xếp hạng kiến trúc vòng 1 không sống nổi qua một lần đổi máy.** Dưới `top3_tta`: A100 cho
+  `P1 > S0 > P0 > B0`, T4 lật thành `B0 > S0 > P1 > P0`. Dưới `top3` thì xếp hạng **giữ được**
+  (`P1` nhất, `B0` bét ở cả hai máy) — thêm một điểm nữa cho `top3`. Nói cách khác: §9 đã **đúng**
+  khi từ chối tuyên bố "Swin-T hơn DenseNet-121"; giờ có bằng chứng trực tiếp thay vì chỉ có CI
+  chồng lấn. Biên độ 0,015–0,019 của các quy tắc một-checkpoint **lớn hơn** cả đòn bẩy kiến trúc
+  mà vòng 1 đo được (+0,0142…+0,0175).
+* **Gate 0a đã đánh giá thấp hiệu ứng này.** Gate 0a đo lệch ~0,010 trên đường val 3 epoch; ở 30
+  epoch cộng thêm bước chọn checkpoint thì lệch tích luỹ tới **0,04–0,07** ở một seed.
+* **Kết luận về `P2` thì an toàn.** +0,0443 lớn hơn mọi hiệu ứng phần cứng trong bảng, và
+  `P2`/`P2b`/`B0` đều trên T4 nên các phép so của phiên này **không** vắt qua hai loại máy — rủi ro
+  mà §10.7 lo (`P2` trên T4 so với `P1` trên A100) đã tự biến mất, chỉ theo một cách không ai chọn.
+
+#### Bốn bảng bị xuống cấp so với bản A100 — bản cũ đã lưu ở `report/tables-a100/`
+
+Phiên này không chạy Gate 0a, ablation, demo; và ô 19b in ra trước khi `PROPOSED_TAG` được đổi:
+
+| Bảng | Bản T4 (`tables/`) | Bản A100 (`tables-a100/`) |
+|---|---|---|
+| `11_gate0a_tat_dinh` | "bỏ qua Gate 0a" | hai lần chạy trùng 6 chữ số ✅ |
+| `23_he_thong_de_xuat_3seed` | vẫn là `P1` (0,6865) | `P1` 0,6961 — cả hai đều lỗi thời; số đúng ở `tables-offline/31_*` |
+| `25_ablation_tuy_chon` | "bỏ qua ablation" | cũng bỏ qua |
+| `29_demo_gradio` | **"không thấy `P1_coatnet0_288_seed0.pt`"** | nạp checkpoint thật + tự kiểm tra ✅ |
+
+Bảng `29` là dòng **Deployment** của rubric và nó sẽ **hỏng ở mọi phiên Kaggle resume**: nhánh
+resume cố tình không copy `.pt` (~100 MB/file) từ `/kaggle/input`, mà Kaggle Dataset `ckpt-t4` cũng
+chỉ chứa `.npz`. Muốn §20b sống lại thì phải đưa `P2_coatnet0_288_modern_seed0.pt` vào Dataset, hoặc
+attach Output của phiên 2026-08-30 làm input.
+
+#### Hai lỗi công cụ đã sửa trong phiên này
+
+1. **`extract.py` lệch 4 prefix.** Notebook đã đổi `RUN_DETERMINISM_CHECK = True` / `RUN_P1_288 = True`
+   sang `SESSION_FLAGS.get(...)`, và ô 16 có thêm dòng bình luận ở đầu. Script `sys.exit` khi không
+   khớp — đúng thiết kế — nhưng nó exit **sau khi** đã xoá sạch `tables/`. Đã sửa cả 4 prefix và
+   thêm 3 bảng của vòng 2 chưa từng được trích: `15b` (P2), `15c` (tách đòn bẩy), `17b` (so sánh
+   theo cặp — chính là kết quả của bậc **M**).
+2. **`flatten_cr` ăn mất mọi output dùng CRLF.** Kaggle chạy `!nvidia-smi` qua subprocess kiểu
+   Windows nên mỗi dòng kết thúc bằng `\r\n`; luật "giữ đoạn sau CR cuối" biến `"abc\r"` thành
+   chuỗi **rỗng**, nên `tables/00_gpu.txt` ra file trắng và script chỉ cảnh báo *"cell chưa chạy?"*
+   thay vì báo lỗi. Đã chuẩn hoá CRLF → LF **trước** khi áp luật CR. Cùng một bài học với hai cái
+   bẫy ở §10.7: **một luật "bỏ qua" đặt sai chỗ thì tệ hơn không có luật nào.**
+
+### Bốn quyết định thiết kế đã cứng hoá trong code
+
+1. **Quy tắc checkpoint bị khoá phiếu bầu.** `RULE_VOTERS` trong §16 chỉ gồm `B0`/`S0`/`P0`/`P1`.
+   Trước đó ô này xếp hạng trên *mọi* mô hình trong `RESULTS_STORE`, nên chỉ cần thêm P2…P5 là
+   `SELECTION_RULE` có thể lật từ `top3_tta` sang quy tắc khác — và **mọi con số đã báo cáo ở §9 sẽ
+   lệch đi mà không ai thấy**. Các bậc mới được *chấm* dưới quy tắc đã chốt, không được *chọn* nó.
+2. **`P3` chọn người thắng trên VAL.** Xếp hạng 4 ứng viên trên test rồi báo cáo điểm test của người
+   thắng là chọn mô hình trên tập test — ở mức nhiễu ±0,035 thì con số ấy gần như chắc chắn không
+   lặp lại. Vòng loại 40 epoch, chung kết 80 epoch, và ô in ra lời nhắc rằng hai số đó **không** so
+   trực tiếp với nhau được.
+3. **`P4` kiểm rò rỉ trước, huấn luyện sau.** Ảnh HyperKvasir trùng test GastroVision bị loại khỏi
+   tập pretrain **trước** khi train, số lượng in ra và bắt buộc vào báo cáo.
+4. **`macro_f1` / `evaluate` / `train_modern` giờ nhận số lớp.** Giai đoạn pretrain HyperKvasir có
+   23 lớp; để mặc định `NUM_CLASSES = 22` thì mixup `scatter_` ném `IndexError` và macro-F1 trung
+   bình trên nhầm tập lớp. Mặc định vẫn là 22 lớp GastroVision cho mọi con số báo cáo.
+
+⚠️ **Notebook đã được dựng lại (60 → 79 ô) nên output của vòng chạy A100 trong file `.ipynb` đã bị
+xoá.** Không mất dữ liệu: `report/tables/` và `report/figures/` đã commit, và bản notebook kèm
+output nằm ở commit `4001cd1` (`git show 4001cd1:final-project/notebooks/gastrovision_classification.ipynb`).
+Lần chạy Colab tới sẽ nạp lại toàn bộ 12 run cũ từ `.npz` trên Drive, nên chỉ `P2` + `P2b` thực sự
+tốn GPU.
+
+---
+
+### 10.10 Phiên 4 đã chạy (T4 / Kaggle, 2026-08-31) — bảng 2×2 khép lại, và câu trả lời ngược dự đoán
+
+`SESSION = 4`, Tesla T4, **5,57 giờ** trong ngân sách 9,0 h (5,36 h huấn luyện thật: `P2b` seed 1+2,
+`P2c` seed 0, `A1`, `A2`; mọi thứ khác đọc lại từ `.npz`). Notebook kèm output đã thay bản cũ tại
+`notebooks/final-gastrovision-classification.ipynb`. Báo cáo đã được cập nhật toàn bộ và
+`report/check_numbers.py` chạy **105/105 khớp**.
+
+**Phiên này không nâng macro-F1, và nó không nhằm nâng** — con số báo cáo vẫn là 0,7441 ± 0,0088.
+Nó đổi ba câu *"chưa kết luận được"* thành ba câu có bằng chứng.
+
+#### Phát hiện 1 — đòn bẩy là `công thức × KIẾN TRÚC`, không phải `× độ phân giải`
+
+Bảng 2×2 dưới quy tắc `top3` (`report/tables-offline/35_bang_2x2_tuong_tac.txt`):
+
+| | công thức cũ | công thức mới | đòn bẩy | seed |
+|---|---|---|---|---|
+| CoAtNet-0 @288 | `P1` 0,6855 | `P2` 0,7298 | **+0,0443** | 3 vs 3 |
+| CoAtNet-0 @224 | `P0` 0,6814 | `P2c` 0,7172 | **+0,0358** | 3 vs 1 |
+| DenseNet-121 @224 | `B0` 0,6780 | `P2b` 0,6670 | **−0,0110** | 3 vs 3 |
+
+* `công thức × kiến trúc` (cùng 224) = **+0,0468** → **vượt** ngưỡng ±0,035
+* `công thức × độ phân giải` (cùng hybrid) = **+0,0085** → dưới ngưỡng 4 lần
+
+Trên cùng seed 0 còn sạch hơn: kiến trúc một mình **−0,0160**, công thức một mình **−0,0043**, cả
+hai **+0,0294** → số hạng tương tác **+0,0497**. Đọc lại toàn bảng dưới `top3_tta` cho +0,0529 /
++0,0083 — **kết luận không phụ thuộc quy tắc chấm điểm**, điều đáng kiểm vì §10.9 vừa cho thấy quy
+tắc chấm điểm từng đảo cả một xếp hạng.
+
+Hạn chế 2 của báo cáo (*"chưa tách được công thức × kiến trúc khỏi công thức × độ phân giải"*) đã
+**xoá**. Thay vào đó là một hạn chế hẹp hơn: ô mang số hạng tương tác mới có **1 seed**.
+
+#### Phát hiện 2 — 288 px là kết quả âm; cấu hình nên triển khai là `P2c` @224
+
+`P2c` @224 = 0,7172 so với `P2` @288 = 0,7166 trên **cùng seed 0** → **−0,0006**, trong khi 288 tốn
+**1,70×** chi phí tính toán mỗi ảnh (8,74 vs 5,13 ms @ batch 32, `tables/28_*`). `P2c` cũng đạt đỉnh
+val ở epoch **11/80** thay vì 40/80 — hội tụ nhanh hơn gần 4 lần.
+
+`P2c` là cấu hình **thứ hai** có CI không chồng lấn 0,6504: [0,6664; 0,7568], McNemar p = 0,0018 so
+với `B0`. Nhưng con số **được báo cáo** vẫn giữ là `P2`, vì `P2` có đủ 3 seed và σ đã biết. Hai vai
+trò tách bạch: `P2` = kết quả đã đo đủ, `P2c` = cấu hình nên triển khai.
+
+Hệ quả cho đường cộng dồn ở `BAO_CAO.md` §5.3: bậc "độ phân giải +0,0041" **chỉ đúng dưới công thức
+cũ**. Bảng cộng dồn giờ được gán nhãn rõ là *mô tả con đường đã đi*, không phải phân rã nhân quả —
+phân rã nhân quả là bảng 2×2.
+
+#### Phát hiện 3 — `P2b` đủ 3 seed: kết quả âm giờ xếp hạng được
+
+−0,0043 / −0,0086 / −0,0200, **3/3 seed đều âm**, mean −0,0110, σ = 0,0119, và thấp hơn cả trên val
+(0,6539 vs 0,6600). |Δ| vẫn dưới ±0,035 nên **không** được nói "công thức làm hại DenseNet-121";
+được nói **"chắc chắn không giúp"**. Hạn chế 3 của bản trước đã xoá.
+
+#### Phát hiện 4 — mất cân bằng: chữa lúc suy luận thắng chữa trong hàm mất mát
+
+Cùng DenseNet-121, cùng split, cùng seed 0, cùng 30 epoch, cùng `top3`
+(`report/tables-offline/36_mat_can_bang_va_pretrain.txt`):
+
+| | macro-F1 | Δ |
+|---|---|---|
+| `B0` cross-entropy | 0,6878 | — |
+| `A2` balanced softmax — sửa **hàm mất mát** | 0,6831 | **−0,0047** |
+| `B0` + hiệu chỉnh logit — sửa **lúc suy luận** | 0,7091 | **+0,0213** |
+
+−0,0047 **lặp lại** −0,007 của nhóm A (giao thức cũ, phần cứng khác) — một trong số ít lever của dự
+án lặp lại được, tiếc là lặp lại một kết quả âm. Cặp số này là phép so sạch nhất mà báo cáo có cho
+luận điểm ở §3.3, và nó thay một đối chiếu vốn phải bắc cầu qua hai cấu hình khác nhau.
+
+#### Phát hiện 5 — `A1`: đổi **dữ liệu pretrain** mua được nhiều hơn đổi kiến trúc
+
+Swin-T, chỉ đổi bộ trọng số khởi tạo IN-1k → IN-22k: 0,6774 → **0,7028**, **+0,0254** — lớn hơn
+*mọi* lever kiến trúc dự án này đo được (+0,0033 … +0,0034 trên 3 seed; −0,0160 trên seed 0). Đây là
+số đo trực tiếp đầu tiên ủng hộ hướng "thêm dữ liệu" ở `BAO_CAO.md` §4.6, thay cho một lập luận
+thuần lý thuyết. Nó **không** chứng minh `P4` sẽ dương — IN-22k không phải dữ liệu nội soi — nên
++0,03…+0,08 của `P4` vẫn phải đọc là phỏng đoán.
+
+#### Hai lỗi công cụ mà phiên này làm lộ ra
+
+1. **§15c in bảng dưới sai quy tắc.** Ô đọc `SELECTION_RULE`, nhưng biến đó chỉ được **chốt ở §16**,
+   chạy *sau* nó — nên bảng 2×2 in ra dưới `best` thay vì `top3`, và dòng kết luận đi kèm đọc
+   **ngược dấu** ở thành phần độ phân giải (`+0,0526` thay vì `+0,0085`). Bốn ô §15c–§15f đều mắc
+   lỗi này; ba ô kia im lặng chỉ vì `P3`/`P4`/`P5` chưa chạy.
+   Đây là **lần thứ hai** cùng một loại lỗi: §10.9 là ghim cứng tên quy tắc, lần này là đọc một biến
+   chưa được gán. Cùng một bệnh — **bảng số và kết luận rút ra từ nó không sinh ra từ cùng một
+   nguồn**. Đã chữa bằng cách đưa `RULE_VOTERS` + `vote_rule()` lên §13 và cho **cả §15c–§15f lẫn
+   §16 gọi chung một hàm**; §16 vẫn là nơi chốt `SELECTION_RULE`. Hàm mới được đối chiếu với bản
+   pandas cũ trên đúng dữ liệu phiên 4: cùng người thắng, cùng thứ tự, cùng hạng trung bình.
+   Output cũ trong `.ipynb` thì không sửa được nếu không chạy lại GPU, nên bảng đúng nằm ở
+   `tables-offline/35_*`, và ô 15c tự in ra cảnh báo này.
+
+2. **Phép quét ảnh đệ quy nhặt luôn thư mục Output của phiên trước.** Kaggle gắn Output của notebook
+   lần trước làm input, nên `scan` thấy `outputs/` và `__results___files/` — mỗi thư mục 3 **hình vẽ
+   matplotlib** — và tính chúng thành hai "lớp": **8.006 ảnh / 29 lớp** thay vì 8.000 / 27. Luật
+   `> 25 ảnh` của bài báo loại cả hai nên **split không đổi** (`tables/05,06,09` byte-identical với
+   vòng trước), nhưng nếu một thư mục đó có > 25 file thì split đã âm thầm đổi và không có gì báo.
+   Ghi lại đây như một rủi ro có thật của cơ chế resume qua thư mục input; biện pháp rẻ nhất là
+   `assert` số lớp == 22 **và** tổng ảnh == 7.930 ngay sau bước lọc.
+
+#### Trạng thái sau phiên 4
+
+| | |
+|---|---|
+| Đã xong | `B0` `S0` `P0` `P1` `P2` `P2b` × 3 seed · `P2c` `A1` `A2` × 1 seed · T1–T4 · bậc M |
+| Không chạy (**chốt 01-09-2026, hết quota**) | `P3` (bỏ vì lý do chuyên môn), `P4`, `P5` — đều thành hướng phát triển tiếp |
+| Rẻ nhất đã bỏ lỡ | `P2c` seed 1+2 (~3,3 h T4) — sẽ biến số hạng tương tác từ 1 seed thành 3 seed; **đây là hạn chế còn lại của báo cáo**, không phải một việc đang chờ |
+| Còn **thiếu** thật sự | **slide** · bằng chứng demo Gradio (mục 29 vẫn skip vì `.pt` không đi theo dataset checkpoint) |

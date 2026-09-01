@@ -1,20 +1,26 @@
 macro-F1 test theo tung quy tac chon checkpoint (trung binh tren cac seed)
 
-quy_tac            best  smooth    top3  best_tta  smooth_tta  top3_tta
+quy_tac                    best  smooth    top3  best_tta  smooth_tta  top3_tta
 mo_hinh
-B0_densenet121   0.6491  0.6470  0.6710    0.6443      0.6456    0.6676
-P0_coatnet0      0.6538  0.6408  0.6806    0.6631      0.6438    0.6818
-P1_coatnet0_288  0.6645  0.6707  0.6905    0.6732      0.6734    0.6961
-S0_swin_t        0.6547  0.6619  0.6867    0.6541      0.6704    0.6851
+B0_densenet121           0.6686  0.6685  0.6780    0.6671      0.6770    0.6863
+P0_coatnet0              0.6800  0.6597  0.6814    0.6799      0.6610    0.6766
+P1_coatnet0_288          0.6424  0.6541  0.6855    0.6464      0.6580    0.6841
+P2_coatnet0_288_modern   0.7222  0.7270  0.7298    0.7199      0.7284    0.7312
+P2b_densenet121_modern   0.6611  0.6584  0.6670    0.6676      0.6727    0.6722
+P2c_coatnet0_224_modern  0.7071  0.7130  0.7172    0.7154      0.7074    0.7154
+S0_swin_t                0.6599  0.6662  0.6813    0.6619      0.6602    0.6843
 
-Hang trung binh tren cac mo hinh (1 = tot nhat):
-  top3_tta    hang 1.50   macro-F1 trung binh 0.6826
-  top3        hang 1.50   macro-F1 trung binh 0.6822
-  smooth_tta  hang 4.00   macro-F1 trung binh 0.6583
-  best        hang 4.50   macro-F1 trung binh 0.6555
-  best_tta    hang 4.75   macro-F1 trung binh 0.6587
-  smooth      hang 4.75   macro-F1 trung binh 0.6551
+(4 cau hinh goc bo phieu chon quy tac; 3 cau hinh cua cac bac
+ sau chi duoc CHAM duoi quy tac do, khong tham gia chon)
 
--> CHOT SELECTION_RULE = 'top3_tta' cho TOAN BO cac muc phia sau.
+Hang trung binh tren cac cau hinh duoc bo phieu (1 = tot nhat):
+  top3        hang 1.50   macro-F1 trung binh 0.6816
+  top3_tta    hang 2.00   macro-F1 trung binh 0.6828
+  smooth_tta  hang 4.00   macro-F1 trung binh 0.6641
+  best_tta    hang 4.50   macro-F1 trung binh 0.6638
+  best        hang 4.50   macro-F1 trung binh 0.6627
+  smooth      hang 4.50   macro-F1 trung binh 0.6621
+
+-> CHOT SELECTION_RULE = 'top3' cho TOAN BO cac muc phia sau.
    (chon MOT quy tac ap cho tat ca mo hinh, khong chon rieng cho tung mo hinh)
    Muon ep tay thi gan lai SELECTION_RULE ngay duoi o nay roi chay lai tu day.

@@ -1,0 +1,17 @@
+Downloading: "https://download.pytorch.org/models/mobilenet_v3_small-047dcff4.pth" to /root/.cache/torch/hub/checkpoints/mobilenet_v3_small-047dcff4.pth
+embedding 7930 anh trong 78s  -> shape (7930, 576)
+
+Cap GAN TRUNG (cosine >= 0.98) nam o HAI tap khac nhau: 9
+   1.0000  val/Colon polyps/ba615bcd-2f99-4a12-884d-d9cd2c04c2a1.jpg   <->   train/Colon polyps/ckda1fpc5000l3a5s17a45xql.jpg
+   1.0000  val/Esophagitis/N2DaTmFs.jpg   <->   test/Normal esophagus/WdSYgDiw.jpg
+   0.9998  test/Gastroesophageal_junction_normal z-line/02a7a210-f047-4852-94f9-b0d844a131d7.jpg   <->   val/Gastroesophageal_junction_normal z-line/asUGeYOA.jpg
+   0.9998  train/Accessory tools/ckcbq0gs703hv0y4h735ha581.jpg   <->   val/Gastric polyps/8f5dae06-df66-49e5-8a07-8447daf122e7.jpg
+   0.9995  train/Pylorus/04c2bbc5-1ffe-4014-91bc-eabb9295af48.jpg   <->   test/Pylorus/pT8eFgiY.jpg
+
+=== KET LUAN AUDIT ===
+trung byte vat qua cac tap : 1
+gan trung vat qua cac tap  : 9 (nguong 0.98, toan bo du lieu)
+anh TEST bi anh huong      : 6 / 1586 = 0.38%  (muc 19b tinh lai macro-F1 khi bo chung)
+cap gan trung KHAC NHAN    : 2  <-- nhieu nhan cua bo du lieu, khong phai ro ri
+   1.0000  Esophagitis (val)  vs  Normal esophagus (test)
+   0.9998  Accessory tools (train)  vs  Gastric polyps (val)

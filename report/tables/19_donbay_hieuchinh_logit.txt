@@ -1,7 +1,10 @@
-=== Don bay 2: hieu chinh logit (tau do tren VAL, quy tac 'top3_tta') ===
-B0_densenet121     tau*=0.1  test: 0.6768 -> 0.6763  (-0.0006)
-S0_swin_t          tau*=0.2  test: 0.6976 -> 0.7029  (+0.0054)
-P0_coatnet0        tau*=0.2  test: 0.6805 -> 0.7045  (+0.0240)
-P1_coatnet0_288    tau*=0.9  test: 0.6941 -> 0.6952  (+0.0011)
+=== Don bay 2: hieu chinh logit (tau do tren VAL, quy tac 'top3') ===
+B0_densenet121             tau*=0.4  test: 0.6878 -> 0.7091  (+0.0213)
+S0_swin_t                  tau*=0.0  test: 0.6774 -> 0.6774  (+0.0000)
+P0_coatnet0                tau*=0.1  test: 0.6718 -> 0.6835  (+0.0117)
+P1_coatnet0_288            tau*=0.2  test: 0.6837 -> 0.7013  (+0.0176)
+P2_coatnet0_288_modern     tau*=0.5  test: 0.7166 -> 0.7442  (+0.0276)
+P2b_densenet121_modern     tau*=0.5  test: 0.6835 -> 0.6900  (+0.0065)
+P2c_coatnet0_224_modern    tau*=0.4  test: 0.7172 -> 0.7317  (+0.0145)
 
 (tau=0 nghia la khong hieu chinh gi; neu tau* ~ 0 thi don bay nay khong co gi de an)

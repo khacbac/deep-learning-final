@@ -1,4 +1,7 @@
-B0_densenet121     val cao nhat=0.6681 tai epoch 12 | do lech 5 epoch cuoi=0.0234
-S0_swin_t          val cao nhat=0.6791 tai epoch  7 | do lech 5 epoch cuoi=0.0102
-P0_coatnet0        val cao nhat=0.6630 tai epoch 22 | do lech 5 epoch cuoi=0.0269
-P1_coatnet0_288    val cao nhat=0.6879 tai epoch 27 | do lech 5 epoch cuoi=0.0021
+B0_densenet121             val cao nhat=0.6600 tai epoch  6 | do lech 5 epoch cuoi=0.0069
+S0_swin_t                  val cao nhat=0.6992 tai epoch  6 | do lech 5 epoch cuoi=0.0178
+P0_coatnet0                val cao nhat=0.6653 tai epoch 19 | do lech 5 epoch cuoi=0.0133
+P1_coatnet0_288            val cao nhat=0.6746 tai epoch 11 | do lech 5 epoch cuoi=0.0290
+P2_coatnet0_288_modern     val cao nhat=0.7208 tai epoch 40 | do lech 5 epoch cuoi=0.0019
+P2b_densenet121_modern     val cao nhat=0.6539 tai epoch 19 | do lech 5 epoch cuoi=0.0002
+P2c_coatnet0_224_modern    val cao nhat=0.7086 tai epoch 11 | do lech 5 epoch cuoi=0.0018

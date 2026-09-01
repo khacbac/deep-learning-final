@@ -1,0 +1,20 @@
+macro-F1 test theo tung quy tac chon checkpoint (trung binh tren cac seed)
+
+quy_tac            best  smooth    top3  best_tta  smooth_tta  top3_tta
+mo_hinh
+B0_densenet121   0.6491  0.6470  0.6710    0.6443      0.6456    0.6676
+P0_coatnet0      0.6538  0.6408  0.6806    0.6631      0.6438    0.6818
+P1_coatnet0_288  0.6645  0.6707  0.6905    0.6732      0.6734    0.6961
+S0_swin_t        0.6547  0.6619  0.6867    0.6541      0.6704    0.6851
+
+Hang trung binh tren cac mo hinh (1 = tot nhat):
+  top3_tta    hang 1.50   macro-F1 trung binh 0.6826
+  top3        hang 1.50   macro-F1 trung binh 0.6822
+  smooth_tta  hang 4.00   macro-F1 trung binh 0.6583
+  best        hang 4.50   macro-F1 trung binh 0.6555
+  best_tta    hang 4.75   macro-F1 trung binh 0.6587
+  smooth      hang 4.75   macro-F1 trung binh 0.6551
+
+-> CHOT SELECTION_RULE = 'top3_tta' cho TOAN BO cac muc phia sau.
+   (chon MOT quy tac ap cho tat ca mo hinh, khong chon rieng cho tung mo hinh)
+   Muon ep tay thi gan lai SELECTION_RULE ngay duoi o nay roi chay lai tu day.

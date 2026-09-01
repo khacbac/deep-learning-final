@@ -1,0 +1,25 @@
+Hai don bay do o muc 19 va muc 25, xep canh nhau vi chung tra loi cung mot cau hoi
+  nguon : report/tables/19, 25 | quy tac 'top3' | tat ca deu tren SEED 0
+
+A. MAT CAN BANG LOP: sua trong HAM MAT MAT hay sua LUC SUY LUAN?
+   cung DenseNet-121, cung split, cung seed, cung 30 epoch
+
+   B0  cross-entropy (doi chung)                0.6878
+   A2  balanced softmax  -- sua HAM MAT MAT     0.6831  -0.0047
+   B0 + hieu chinh logit -- sua LUC SUY LUAN    0.7091  +0.0213   tau* = 0.4
+
+   Tren cau hinh tot nhat (P2), cung don bay suy luan:
+   P2 -> P2 + hieu chinh logit                  0.7442  +0.0276   tau* = 0.5
+
+   -> Cung mot muc tieu, hai cho sua. Sua ham mat mat: -0.0047 (am). Sua luc suy luan:
+      +0.0213 tren B0 va +0.0276 tren P2, ton 0 epoch. Doi voi bo du lieu nay, mat can bang
+      nen duoc chua SAU khi huan luyen chu khong phai trong luc huan luyen.
+
+B. DU LIEU PRETRAIN: cung kien truc Swin-T, chi doi bo trong so khoi tao
+
+   S0  Swin-T, pretrain ImageNet-1k             0.6774
+   A1  Swin-T, pretrain ImageNet-22k            0.7028  +0.0254
+
+   De so sanh, don bay KIEN TRUC do tren cung seed 0: -0.0160 (P0 - B0).
+   Chi doi DU LIEU pretrain mua duoc +0.0254 -- lon hon, va khong doi mot dong kien truc nao.
+   Day la so do ung ho huong 'them du lieu' o muc 4.6, thay cho mot lap luan thuan ly thuyet.

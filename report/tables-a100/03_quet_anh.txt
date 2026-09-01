@@ -1,0 +1,7 @@
+Mounted at /content/drive
+dang tai Gastrovision.zip (~1.8 GB, chi lan dau)...
+kich thuoc zip: 1794 MB -> dang giai nen...
+giai nen zip long: Gastrovision.zip
+
+DATA_DIR = /content/gastrovision  | tong so anh: 8000
+CKPT_DIR = /content/drive/MyDrive/gastrovision_ckpts

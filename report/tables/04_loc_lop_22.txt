@@ -1,3 +1,3 @@
-So thu muc lop tim thay: 27  | tong anh: 8000
+So thu muc lop tim thay: 29  | tong anh: 8006
 Sau khi loc > 25 anh: 22 lop, 7930 anh
-Lop bi loai (qua it anh): {'Resection margins': 25, 'Angiectasia': 17, 'Erythema': 15, 'Esophageal varices': 7, 'Ulcer': 6}
+Lop bi loai (qua it anh): {'Resection margins': 25, 'Angiectasia': 17, 'Erythema': 15, 'Esophageal varices': 7, 'Ulcer': 6, 'outputs': 3, '__results___files': 3}

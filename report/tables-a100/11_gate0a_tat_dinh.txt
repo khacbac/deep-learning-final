@@ -1,0 +1,7 @@
+lan 1: val macro-F1 tung epoch = [0.428608, 0.549646, 0.551532]
+lan 2: val macro-F1 tung epoch = [0.428608, 0.549646, 0.551532]
+
+=== KET QUA GATE 0a ===
+hai duong val TRUNG KHIT
+-> pipeline tat dinh o cung seed. Moi chenh lech con lai la phuong sai GIUA CAC SEED,
+   va trung binh 3 seed la cach do dung.

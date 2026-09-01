@@ -1,20 +1,20 @@
-Transfer learning -- cung DenseNet-121, cung split/seed/epoch, quy tac 'top3_tta'
+Transfer learning -- cung DenseNet-121, cung split/seed/epoch, quy tac 'top3'
 
-                    dieu_kien                              hoc_gi  so_seed  test_top3_tta  do_lech  best_val  phut
-              T1 linear probe                   chi lop phan loai        1         0.5725   0.0000    0.5376   9.2
-        T2 dong bang nua duoi            nua tren + lop phan loai        1         0.6463   0.0000    0.6246   9.3
-T3 progressive + LR phan biet probe 3 ep -> toan mang, LR bb 0,5x        1         0.6472   0.0000    0.6249  10.9
-     T4 full fine-tune (= B0)                   toan mang, mot LR        3         0.6676   0.0066    0.6681   9.7
+                    dieu_kien                              hoc_gi  so_seed  test_top3  do_lech  best_val  phut
+              T1 linear probe                   chi lop phan loai        1     0.5674   0.0000    0.5409  20.0
+        T2 dong bang nua duoi            nua tren + lop phan loai        1     0.6596   0.0000    0.6397  20.2
+T3 progressive + LR phan biet probe 3 ep -> toan mang, LR bb 0,5x        1     0.6394   0.0000    0.6166  23.5
+     T4 full fine-tune (= B0)                   toan mang, mot LR        3     0.6780   0.0073    0.6600  21.6
 
-So voi full fine-tune (0.6676); nguong 'dang ke' = 2 sigma = 0.0132
+So voi full fine-tune (0.6780); nguong 'dang ke' = 2 sigma = 0.0146
 (sigma lay tu 3 seed cua B0, khong phai cua tung dieu kien -- moi dieu kien chi 1 seed)
-  T1 linear probe                  -0.0951   DANG KE
-  T2 dong bang nua duoi            -0.0213   DANG KE
-  T3 progressive + LR phan biet    -0.0204   DANG KE
+  T1 linear probe                  -0.1106   DANG KE
+  T2 dong bang nua duoi            -0.0184   DANG KE
+  T3 progressive + LR phan biet    -0.0386   DANG KE
 
 Doi chung tu Table 2 cua bai bao (cung split, n lon hon):
   chi fine-tune lop cuoi : ResNet-152 0.4496 | EfficientNet-B0 0.4519 | DenseNet-169 0.4883
   fine-tune toan mang    : ResNet-50  0.6176 | DenseNet-121    0.6504
   -> chenh ~0,16 macro-F1, cung chieu voi T1 vs T4 o tren.
 
-da luu /content/outputs/bang_transfer_learning.csv
+da luu /kaggle/working/outputs/bang_transfer_learning.csv

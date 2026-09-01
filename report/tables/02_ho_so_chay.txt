@@ -1,4 +1,4 @@
-PROFILE = gpu-a100   (device=cuda, NVIDIA A100-SXM4-40GB)
-  epochs=30  batch=32  seeds=[0, 1, 2]  workers=4
-  amp=True (bfloat16)  GradScaler=False  TF32=bat
+PROFILE = gpu-t4   (device=cuda, Tesla T4)
+  epochs=30  batch=32  seeds=[0, 1, 2]  workers=2
+  amp=True (float16)  GradScaler=True
   gioi han anh moi lop (train/val/test) = None

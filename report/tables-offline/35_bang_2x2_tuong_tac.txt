@@ -1,0 +1,57 @@
+Tach don bay CONG THUC HUAN LUYEN ra khoi KIEN TRUC va DO PHAN GIAI
+  nguon : report/tables/12,14,15b,16 (phien Kaggle T4 2026-08-31, SESSION = 4)
+  quy tac doc: 'top3' -- muc 16 chot (xem CANH BAO cuoi bang)
+
+A. TRUNG BINH TREN CAC SEED
+
+  cau hinh              cong thuc cu     cong thuc moi      don bay   seed
+  CoAtNet-0 @288        P1   0.6855      P2   0.7298        +0.0443   3 vs 3
+  CoAtNet-0 @224        P0   0.6814      P2c  0.7172        +0.0358   3 vs 1
+  DenseNet-121 @224     B0   0.6780      P2b  0.6670        -0.0110   3 vs 3
+
+  [1] cong thuc x KIEN TRUC     (co dinh 224)   : +0.0358 - (-0.0110) = +0.0468
+  [2] cong thuc x DO PHAN GIAI  (co dinh hybrid): +0.0443 - (+0.0358) = +0.0085
+
+B. CUNG SEED 0 -- phep so chat hon, vi P2c moi chay 1 seed
+
+  kien truc @224         cong thuc cu cong thuc moi    don bay
+  DenseNet-121 (CNN)           0.6878       0.6835    -0.0043
+  CoAtNet-0 (hybrid)           0.6718       0.7172    +0.0454
+
+  so hang TUONG TAC = +0.0454 - (-0.0043) = +0.0497
+
+  Tung yeu to MOT MINH tai seed 0:
+    chi doi kien truc  (giu cong thuc cu) : 0.6718 - 0.6878 = -0.0160
+    chi doi cong thuc  (giu CNN)          : 0.6835 - 0.6878 = -0.0043
+    doi CA HAI                            : 0.7172 - 0.6878 = +0.0294
+  -> ca hai don bay don le deu <= 0; chi to hop moi duong. Day la mot TUONG TAC,
+     khong phai tong cua hai don bay doc lap.
+
+C. DO PHAN GIAI 288 vs 224, doc rieng duoi tung cong thuc (seed 0)
+
+    duoi cong thuc CU  : P1  0.6837 - P0  0.6718 = +0.0119
+    duoi cong thuc MOI : P2  0.7166 - P2c 0.7172 = -0.0006
+  -> 288 khong con mua duoc gi khi da co cong thuc moi.
+
+  Nguong phan giai cua bo test 1.586 anh: CI bootstrap ~ +/-0,035.
+  Chi so hang TUONG TAC (+0.0468 muc A / +0.0497 muc B) vuot nguong;
+  thanh phan DO PHAN GIAI (+0.0085) va don bay 288 duoi cong thuc moi (-0.0006) thi khong.
+
+D. DOC LAI CA BANG DUOI 'top3_tta' -- kiem ket luan co phu thuoc quy tac cham diem khong
+
+    CoAtNet-0 @288       +0.0471
+    CoAtNet-0 @224       +0.0388
+    DenseNet-121 @224    -0.0141
+
+    cong thuc x KIEN TRUC     = +0.0529   (duoi 'top3': +0.0468)
+    cong thuc x DO PHAN GIAI  = +0.0083   (duoi 'top3': +0.0085)
+  -> Doi quy tac cham diem KHONG doi ket luan: thanh phan kien truc van vuot +/-0,035 con
+     thanh phan do phan giai van khong. Muc 2.5 cho thay quy tac cham diem tung dao ca mot
+     xep hang, nen phep kiem nay khong thua.
+
+CANH BAO -- vi sao bang nay o day chu khong lay tu o 15c cua notebook:
+  Output luu trong .ipynb cua phien SESSION = 4 in bang 15c duoi quy tac 'best' chu khong
+  phai 'top3'. O 15c doc SELECTION_RULE, ma bien do chi duoc CHOT o muc 16 -- chay SAU no.
+  Duoi 'best' thanh phan do phan giai doc ra la +0,0526 (nguoc han voi +0.0085 o tren) nen
+  dong ket luan in kem trong o do la SAI. Notebook da duoc sua (ca 15c..15f nay goi chung
+  ham vote_rule() voi muc 16), nhung output cu thi khong sua lai duoc ma khong chay lai GPU.

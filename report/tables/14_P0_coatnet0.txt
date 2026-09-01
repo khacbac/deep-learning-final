@@ -1,8 +1,8 @@
 [P0_coatnet0 seed 0] doc lai tu P0_coatnet0_seed0.npz (bo qua huan luyen)
-   best=0.6407  best_tta=0.6570  smooth=0.6426  smooth_tta=0.6574  top3=0.6886  top3_tta=0.6805
+   best=0.6638  best_tta=0.6701  smooth=0.6513  smooth_tta=0.6593  top3=0.6718  top3_tta=0.6590
 [P0_coatnet0 seed 1] doc lai tu P0_coatnet0_seed1.npz (bo qua huan luyen)
-   best=0.6649  best_tta=0.6711  smooth=0.6649  smooth_tta=0.6711  top3=0.6820  top3_tta=0.6837
+   best=0.6825  best_tta=0.6728  smooth=0.6419  smooth_tta=0.6490  top3=0.6773  top3_tta=0.6739
 [P0_coatnet0 seed 2] doc lai tu P0_coatnet0_seed2.npz (bo qua huan luyen)
-   best=0.6559  best_tta=0.6614  smooth=0.6148  smooth_tta=0.6029  top3=0.6712  top3_tta=0.6812
+   best=0.6936  best_tta=0.6968  smooth=0.6858  smooth_tta=0.6746  top3=0.6951  top3_tta=0.6968
 
->>> P0_coatnet0  TEST macro-F1 (quy tac 'best') = 0.6538 +/- 0.0100   tren 3 seed
+>>> P0_coatnet0  TEST macro-F1 (quy tac 'best') = 0.6800 +/- 0.0123   tren 3 seed

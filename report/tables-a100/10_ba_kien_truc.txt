@@ -1,0 +1,6 @@
+Downloading: "https://download.pytorch.org/models/densenet121-a639ec97.pth" to /root/.cache/torch/hub/checkpoints/densenet121-a639ec97.pth
+  densenet121  OK |   7.0M tham so | dau vao 224x224
+  swin_t       OK |  27.5M tham so | dau vao 224x224
+  coatnet0     OK |  26.7M tham so | dau vao 224x224
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.

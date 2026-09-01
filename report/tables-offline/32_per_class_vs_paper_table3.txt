@@ -1,0 +1,47 @@
+F1 tung lop: P2_coatnet0_288_modern seed 0, quy tac 'top3'  vs  Table 3 cua bai bao (DenseNet-121)
+Bai bao lam tron 2 chu so; 22 gia tri do trung binh ra 0.6518 (cong bo 0,6504).
+Tap test cung thanh phan tung lop (muc 1.3 cua bao cao), nen quy duoc phan cai thien VE TUNG LOP.
+
+lop                                                       paper       P2     delta   test  train
+Resected polyps                                            0.17    0.483    +0.313     18     55
+Gastric polyps                                             0.33    0.636    +0.306     13     39
+Retroflex rectum                                           0.55    0.759    +0.209     13     40
+Barrett's esophagus                                        0.40    0.600    +0.200     19     57
+Esophagitis                                                0.31    0.485    +0.175     21     64
+Normal esophagus                                           0.77    0.906    +0.136     28     84
+Cecum                                                      0.23    0.364    +0.134     23     68
+Dyed-lifted-polyps                                         0.86    0.923    +0.063     28     85
+Gastroesophageal_junction_normal z-line                    0.74    0.803    +0.063     66    198
+Ileocecal valve                                            0.72    0.778    +0.058     40    120
+Small bowel_terminal ileum                                 0.85    0.896    +0.046    169    508
+Dyed-resection-margins                                     0.93    0.970    +0.040     49    148
+Normal stomach                                             0.88    0.904    +0.024    194    581
+Normal mucosa and vascular pattern in the large bowel      0.84    0.856    +0.016    294    880
+Colon polyps                                               0.82    0.834    +0.014    164    492
+Accessory tools                                            0.95    0.957    +0.007    253    760
+Colon diverticula                                          0.50    0.500    +0.000      6     17
+Duodenal bulb                                              0.74    0.733    -0.007     41    123
+Pylorus                                                    0.86    0.827    -0.033     79    236
+Blood in lumen                                             0.89    0.831    -0.059     34    103
+Colorectal cancer                                          0.50    0.435    -0.065     28     83
+Mucosal inflammation large bowel                           0.50    0.286    -0.214      6     17
+
+--- Chia theo co tap test (nguong 50 anh, giong muc 4.4 ban A100) ---
+
+nhom                           so lop  delta F1 TB           gop vao macro-F1
+hiem (< 50 anh test)               15        0.086                    +0.0585
+pho bien (>= 50 anh test)           7        0.020                    +0.0062
+toan bo 22 lop                     22        0.065                    +0.0647
+
+-> lop hiem gop 90.4% cua toan bo muc cai thien.
+
+--- Cac lop van THUA bai bao (phai bao cao, nguyen tac 5 cua de bai) ---
+
+Mucosal inflammation large bowel                       -0.214  -> keo macro-F1 -0.0097  (6 anh test)
+Colorectal cancer                                      -0.065  -> keo macro-F1 -0.0030  (28 anh test)
+Blood in lumen                                         -0.059  -> keo macro-F1 -0.0027  (34 anh test)
+Pylorus                                                -0.033  -> keo macro-F1 -0.0015  (79 anh test)
+Duodenal bulb                                          -0.007  -> keo macro-F1 -0.0003  (41 anh test)
+
+Vi macro-F1 can bang 22 lop nhu nhau, MOT lop 6 anh co the ngoam 0.0455 macro-F1.
+Do la co che khien bootstrap CI (+/-0,035) rong gap nhieu lan sigma giua cac seed.

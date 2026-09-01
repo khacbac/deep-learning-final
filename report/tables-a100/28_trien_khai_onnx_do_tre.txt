@@ -1,0 +1,21 @@
+IMG_SIZE -> 224 (dung augment 'plain')
+IMG_SIZE -> 224 (dung augment 'plain')
+IMG_SIZE -> 224 (dung augment 'plain')
+IMG_SIZE -> 288 (dung augment 'plain')
+IMG_SIZE -> 224 (dung augment 'plain')
+
+Do tren NVIDIA A100-SXM4-40GB
+
+      mo_hinh  do_phan_giai  trieu_tham_so  ms_batch1  ms_batch  onnx_MB xuat_onnx
+  densenet121           224            7.0       18.9      0.58     29.1        OK
+       swin_t           224           27.5       23.5      0.73    113.7        OK
+     coatnet0           224           26.7       13.4      0.59    110.4        OK
+coatnet0 @288           288           26.7       13.2      0.99    114.8        OK
+
+ms_batch1 = do tre mot anh mot (kich ban lam sang) -- bi chi phoi boi so lan khoi chay kernel.
+ms_batch  = ms/anh khi chay batch 32 (kich ban xu ly lo) -- phan anh chi phi TINH TOAN.
+Hai cot co the xep hang KHAC NHAU; do la thong tin ve kien truc, khong phai loi do.
+WARNING:onnxscript.optimizer._constant_folding:Skipping constant folding for op SequenceEmpty with multiple outputs.
+WARNING:onnxscript.optimizer._constant_folding:Skipping constant folding for op SequenceEmpty with multiple outputs.
+WARNING:onnxscript.optimizer._constant_folding:Skipping constant folding for op SequenceEmpty with multiple outputs.
+WARNING:onnxscript.optimizer._constant_folding:Skipping constant folding for op SequenceEmpty with multiple outputs.

@@ -1,0 +1,22 @@
+P1_coatnet0_288 + TTA + ensemble top-3 checkpoint  (+/- hieu chinh logit)
+
+  seed 0: top3+TTA = 0.6941   tau*=0.9 -> 0.6952  (+0.0011)
+  seed 1: top3+TTA = 0.6980   tau*=0.5 -> 0.7252  (+0.0271)
+  seed 2: top3+TTA = 0.6961   tau*=0.0 -> 0.6961  (+0.0000)
+
+          bien the  trung binh   do lech
+  khong hieu chinh      0.6961    0.0016
+     co hieu chinh      0.7055    0.0139
+
+   !! Hieu chinh logit cao hon +0.0094 nhung do lech phinh tu 0.0016 len 0.0139.
+      tau* moi seed mot khac (0.9, 0.5, 0.0) -> muc tang la cua MOT seed,
+      khong phai cua phuong phap. Bo khoi he thong, bao cao rieng thanh mot
+      ablation KHONG tai lap duoc giua cac seed.
+
+HE THONG DE XUAT (khong hieu chinh logit)
+                   macro-F1 = 0.6961 +/- 0.0016  tren 3 seed
+                   so voi paper 0.6504: +0.0457
+                   CI 95% (seed dau) = [0.6548, 0.7245]
+
++ ensemble ca 3 seed  macro-F1 = 0.7221  CI 95% [0.6728, 0.7609]   (DONG RIENG: ton 3 lan huan luyen)
+  -> CI khong chong lan 0,6504: duoc quyen noi 'vuot baseline cong bo'.

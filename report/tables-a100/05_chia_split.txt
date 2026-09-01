@@ -1,0 +1,2 @@
+Toan bo du lieu: train=4758  val=1586  test=1586
+So anh train it nhat / nhieu nhat: 17 / 880

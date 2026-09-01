@@ -61,3 +61,8 @@ Desktop.ini
 .vscode/
 *.swp
 *~
+
+# Tai ve tu Kaggle / san sang upload — deu la artifact, khong commit
+notebooks/kout/
+ckpt-t4/
+ckpt-a100/

@@ -1,0 +1,52 @@
+Quy tac 'top3' | 1000 lan lay mau lai CUNG bo anh
+
+A                        B                    nguon      d macro-F1           CI95 cua d McNemar b/c        p  ket luan
+S0_swin_t                B0_densenet121       seed 0       -0.0104 [-0.0455, +0.0227]    70/79      0.5124  chua ket luan duoc
+S0_swin_t                B0_densenet121       seed 1       +0.0036 [-0.0358, +0.0404]    93/83      0.4976  chua ket luan duoc
+S0_swin_t                B0_densenet121       seed 2       +0.0168 [-0.0289, +0.0599]    95/85      0.5024  chua ket luan duoc
+                                              (d TB)       +0.0033   bien do giua cac seed: 0.0272
+S0_swin_t                B0_densenet121       ens3seed     +0.0046 [-0.0308, +0.0395]    62/61      1.0000  chua ket luan duoc
+
+P0_coatnet0              B0_densenet121       seed 0       -0.0160 [-0.0530, +0.0212]    89/77      0.3933  chua ket luan duoc
+P0_coatnet0              B0_densenet121       seed 1       +0.0070 [-0.0277, +0.0429]    81/83      0.9378  chua ket luan duoc
+P0_coatnet0              B0_densenet121       seed 2       +0.0194 [-0.0149, +0.0533]    95/90      0.7688  chua ket luan duoc
+                                              (d TB)       +0.0034   bien do giua cac seed: 0.0354
+P0_coatnet0              B0_densenet121       ens3seed     -0.0053 [-0.0376, +0.0235]    62/57      0.7140  chua ket luan duoc
+
+P1_coatnet0_288          B0_densenet121       seed 0       -0.0041 [-0.0443, +0.0298]    76/66      0.4502  chua ket luan duoc
+P1_coatnet0_288          B0_densenet121       seed 1       +0.0079 [-0.0296, +0.0438]    90/68      0.0945  chua ket luan duoc
+P1_coatnet0_288          B0_densenet121       seed 2       +0.0187 [-0.0283, +0.0629]   101/100     1.0000  chua ket luan duoc
+                                              (d TB)       +0.0075   bien do giua cac seed: 0.0228
+P1_coatnet0_288          B0_densenet121       ens3seed     +0.0016 [-0.0354, +0.0407]    62/54      0.5159  chua ket luan duoc
+
+P2_coatnet0_288_modern   B0_densenet121       seed 0       +0.0288 [-0.0084, +0.0613]    93/67      0.0478  chua ket luan duoc
+P2_coatnet0_288_modern   B0_densenet121       seed 1       +0.0632 [+0.0276, +0.0982]   115/65      0.0002  A > B, co y nghia
+P2_coatnet0_288_modern   B0_densenet121       seed 2       +0.0635 [+0.0217, +0.1045]   115/70      0.0012  A > B, co y nghia
+                                              (d TB)       +0.0518   bien do giua cac seed: 0.0347
+P2_coatnet0_288_modern   B0_densenet121       ens3seed     +0.0430 [+0.0147, +0.0691]    83/50      0.0053  A > B, co y nghia
+
+P2b_densenet121_modern   B0_densenet121       seed 0       -0.0043 [-0.0540, +0.0416]    74/66      0.5543  chua ket luan duoc
+P2b_densenet121_modern   B0_densenet121       seed 1       -0.0086 [-0.0532, +0.0332]    77/77      1.0000  chua ket luan duoc
+P2b_densenet121_modern   B0_densenet121       seed 2       -0.0200 [-0.0623, +0.0202]    78/87      0.5335  chua ket luan duoc
+                                              (d TB)       -0.0110   bien do giua cac seed: 0.0157
+P2b_densenet121_modern   B0_densenet121       ens3seed     -0.0213 [-0.0669, +0.0179]    55/54      1.0000  chua ket luan duoc
+
+P2c_coatnet0_224_modern  B0_densenet121       seed 0       +0.0294 [-0.0088, +0.0637]    99/59      0.0018  chua ket luan duoc
+
+P2_coatnet0_288_modern   P1_coatnet0_288      seed 0       +0.0329 [-0.0040, +0.0684]    78/62      0.2047  chua ket luan duoc
+P2_coatnet0_288_modern   P1_coatnet0_288      seed 1       +0.0553 [+0.0253, +0.0825]    82/54      0.0203  A > B, co y nghia
+P2_coatnet0_288_modern   P1_coatnet0_288      seed 2       +0.0447 [+0.0031, +0.0836]    99/55      0.0005  A > B, co y nghia
+                                              (d TB)       +0.0443   bien do giua cac seed: 0.0224
+P2_coatnet0_288_modern   P1_coatnet0_288      ens3seed     +0.0414 [+0.0053, +0.0760]    63/38      0.0165  A > B, co y nghia
+
+Doc the nao:
+ - CI cua d KHONG chua 0  -> khac biet co y nghia tren BO TEST NAY.
+ - McNemar p nho          -> su bat dong lech han ve mot phia, khong phai ngau nhien.
+ - Hai phep bat dong nhau -> tin CI cua d (McNemar dem anh, khong can nang lop hiem;
+   ma macro-F1 thi can bang moi lop -> hai cau hoi khac nhau, ca hai deu dung).
+ - Cac dong 'seed k' bien dong manh -> ket luan cua bac M phu thuoc xo so seed;
+   dong 'ens*seed' la phep so KHONG con phu thuoc xo so do, nhung no so HE THONG
+   nhieu seed chu khong so mo hinh don.
+
+!! Van chi la MOT bo test co dinh (SPLIT_SEED=42). Phep nay lam so sanh nhay hon,
+   KHONG tra loi duoc 'ket qua co giu tren bo chia khac khong'.

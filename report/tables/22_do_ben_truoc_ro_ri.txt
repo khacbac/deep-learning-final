@@ -1,10 +1,13 @@
 Bo 6 / 1586 anh test bi nghi ro ri (trung byte hoac cosine >= 0.98)
 
-mo hinh              day du   da loc    chenh
-B0_densenet121       0.6768   0.6749  -0.0020
-S0_swin_t            0.6976   0.6953  -0.0022
-P0_coatnet0          0.6805   0.6787  -0.0018
-P1_coatnet0_288      0.6941   0.6922  -0.0019
+mo hinh                      day du   da loc    chenh
+B0_densenet121               0.6878   0.6855  -0.0023
+S0_swin_t                    0.6774   0.6753  -0.0021
+P0_coatnet0                  0.6718   0.6701  -0.0017
+P1_coatnet0_288              0.6837   0.6812  -0.0025
+P2_coatnet0_288_modern       0.7166   0.7149  -0.0016
+P2b_densenet121_modern       0.6835   0.6818  -0.0016
+P2c_coatnet0_224_modern      0.7172   0.7155  -0.0018
 
 -> Chenh lech nho hon do lech chuan giua cac seed nghia la ro ri KHONG phai nguon
    sinh ra ket qua. Chenh lech lon thi phai bao cao con so DA LOC lam so chinh.

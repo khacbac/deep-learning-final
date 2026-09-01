@@ -1,8 +1,11 @@
 Baseline cong bo (DenseNet-121, arXiv 2307.08140): 0.6504
-Quy tac chon checkpoint: top3_tta | ho so: gpu-a100
+Quy tac chon checkpoint: top3 | ho so: gpu-t4
 
-        mo_hinh  so_seed          macro_f1     ci95_seed0 vs_paper  phut_moi_seed
- B0_densenet121        3 0.6676 +/- 0.0066 [0.628, 0.713]  +0.0172            9.8
-      S0_swin_t        3 0.6851 +/- 0.0114 [0.651, 0.736]  +0.0347            9.6
-    P0_coatnet0        3 0.6818 +/- 0.0014 [0.632, 0.719]  +0.0314            9.5
-P1_coatnet0_288        3 0.6961 +/- 0.0016 [0.655, 0.725]  +0.0457           10.5
+                mo_hinh  so_seed          macro_f1     ci95_seed0 vs_paper  phut_moi_seed
+         B0_densenet121        3 0.6780 +/- 0.0073 [0.641, 0.724]  +0.0276           21.3
+              S0_swin_t        3 0.6813 +/- 0.0081 [0.631, 0.717]  +0.0309           23.2
+            P0_coatnet0        3 0.6814 +/- 0.0100 [0.623, 0.710]  +0.0310           23.4
+        P1_coatnet0_288        3 0.6855 +/- 0.0068 [0.636, 0.719]  +0.0351           34.1
+ P2_coatnet0_288_modern        3 0.7298 +/- 0.0096 [0.666, 0.753]  +0.0794          118.2
+ P2b_densenet121_modern        3 0.6670 +/- 0.0119 [0.632, 0.723]  +0.0166           91.0
+P2c_coatnet0_224_modern        1 0.7172 +/- 0.0000 [0.666, 0.757]  +0.0668           98.1

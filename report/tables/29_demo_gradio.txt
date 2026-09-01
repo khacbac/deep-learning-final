@@ -1,4 +1,1 @@
-IMG_SIZE -> 288 (dung augment 'plain')
-IMG_SIZE -> 224 (dung augment 'plain')
-demo: da nap P1_coatnet0_288 seed 0 @ 288px tren cuda
-  tu kiem tra: that = 'Accessory tools' | du doan = 'Accessory tools' (1.000)
+bo qua demo: khong thay /kaggle/working/gastrovision_ckpts/P2_coatnet0_288_modern_seed0.pt -- chay muc 15/15b truoc, hoac doi DEMO_TAG

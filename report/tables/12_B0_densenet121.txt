@@ -1,10 +1,10 @@
 IMG_SIZE -> 224 (dung augment 'plain')
 augment -> plain
 [B0_densenet121 seed 0] doc lai tu B0_densenet121_seed0.npz (bo qua huan luyen)
-   best=0.6666  best_tta=0.6616  smooth=0.6666  smooth_tta=0.6616  top3=0.6854  top3_tta=0.6768
+   best=0.7008  best_tta=0.6789  smooth=0.6625  smooth_tta=0.6740  top3=0.6878  top3_tta=0.6936
 [B0_densenet121 seed 1] doc lai tu B0_densenet121_seed1.npz (bo qua huan luyen)
-   best=0.6394  best_tta=0.6370  smooth=0.6322  smooth_tta=0.6421  top3=0.6624  top3_tta=0.6637
+   best=0.6461  best_tta=0.6493  smooth=0.6652  smooth_tta=0.6640  top3=0.6703  top3_tta=0.6806
 [B0_densenet121 seed 2] doc lai tu B0_densenet121_seed2.npz (bo qua huan luyen)
-   best=0.6414  best_tta=0.6342  smooth=0.6424  smooth_tta=0.6333  top3=0.6653  top3_tta=0.6623
+   best=0.6589  best_tta=0.6732  smooth=0.6777  smooth_tta=0.6929  top3=0.6758  top3_tta=0.6848
 
->>> B0_densenet121  TEST macro-F1 (quy tac 'best') = 0.6491 +/- 0.0124   tren 3 seed
+>>> B0_densenet121  TEST macro-F1 (quy tac 'best') = 0.6686 +/- 0.0234   tren 3 seed

@@ -1,0 +1,22 @@
+HE THONG DE XUAT vs CA HAI BASELINE -- ghep cap tren CUNG bo anh, quy tac 'top3'
+(bang 17b cua notebook chi so voi B0; baseline 2 chua tung duoc kiem theo cap)
+
+A vs B                     nguon              d            CI95 cua d    McNemar        p  ket luan
+P2 vs B0                   seed 0       +0.0288 [-0.0084, +0.0613]    93/67     0.0478  chua ket luan duoc
+P2 vs B0                   seed 1       +0.0632 [+0.0276, +0.0982]   115/65     0.0002  A > B, CO Y NGHIA
+P2 vs B0                   seed 2       +0.0635 [+0.0217, +0.1045]   115/70     0.0012  A > B, CO Y NGHIA
+                           ens3seed     +0.0430 [+0.0147, +0.0691]    83/50     0.0053  A > B, CO Y NGHIA
+    ^^^ baseline 1 -- CNN tham chieu, = mo hinh cua bai bao   -> co y nghia o 2/3 seed + dong ens3seed
+
+P2 vs S0                   seed 0       +0.0391 [+0.0029, +0.0729]   102/67     0.0087  A > B, CO Y NGHIA
+P2 vs S0                   seed 1       +0.0596 [+0.0227, +0.1002]    98/58     0.0017  A > B, CO Y NGHIA
+P2 vs S0                   seed 2       +0.0467 [+0.0100, +0.0824]    89/54     0.0043  A > B, CO Y NGHIA
+                           ens3seed     +0.0384 [+0.0074, +0.0708]    74/42     0.0038  A > B, CO Y NGHIA
+    ^^^ baseline 2 -- Transformer, nhanh bai bao KHONG co   -> co y nghia o 3/3 seed + dong ens3seed
+
+Doc the nao:
+ - CI cua d KHONG chua 0  -> khac biet co y nghia tren BO TEST NAY.
+ - Vuot baseline 2 con SACH HON vuot baseline 1: 3/3 seed thay vi 2/3. Ly do la B0 co mot
+   seed may (seed 0 duoi quy tac 'best' cho 0,7008, cao bat thuong) -- xem muc 1.4.
+ - Van chi la MOT bo test co dinh (SPLIT_SEED = 42). Phep nay lam so sanh nhay hon, KHONG
+   tra loi 'ket qua co giu tren bo chia khac khong'.

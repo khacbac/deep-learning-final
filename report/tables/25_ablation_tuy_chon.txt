@@ -1,1 +1,78 @@
-bo qua ablation (dat RUN_ABLATIONS = True neu con gio GPU)
+IMG_SIZE -> 224 (dung augment 'plain')
+augment -> plain
+  A1_swin_in22k OK |  27.5M tham so | dau vao 224x224
+[A1_swin_in22k seed 0] bat dau huan luyen (30 epoch, batch 32)
+  ep 01/30  val_macroF1=0.4907  (best=0.4907)  37s/epoch
+  ep 02/30  val_macroF1=0.6058  (best=0.6058)  33s/epoch
+  ep 03/30  val_macroF1=0.6032  (best=0.6058)  34s/epoch
+  ep 04/30  val_macroF1=0.6324  (best=0.6324)  34s/epoch
+  ep 05/30  val_macroF1=0.6565  (best=0.6565)  34s/epoch
+  ep 06/30  val_macroF1=0.6833  (best=0.6833)  34s/epoch
+  ep 07/30  val_macroF1=0.6137  (best=0.6833)  34s/epoch
+  ep 08/30  val_macroF1=0.6543  (best=0.6833)  34s/epoch
+  ep 09/30  val_macroF1=0.6736  (best=0.6833)  34s/epoch
+  ep 10/30  val_macroF1=0.6705  (best=0.6833)  34s/epoch
+  ep 11/30  val_macroF1=0.6667  (best=0.6833)  33s/epoch
+  ep 12/30  val_macroF1=0.6553  (best=0.6833)  34s/epoch
+  ep 13/30  val_macroF1=0.6592  (best=0.6833)  33s/epoch
+  ep 14/30  val_macroF1=0.6722  (best=0.6833)  34s/epoch
+  ep 15/30  val_macroF1=0.6811  (best=0.6833)  33s/epoch
+  ep 16/30  val_macroF1=0.6590  (best=0.6833)  33s/epoch
+  ep 17/30  val_macroF1=0.6493  (best=0.6833)  33s/epoch
+  ep 18/30  val_macroF1=0.6121  (best=0.6833)  33s/epoch
+  ep 19/30  val_macroF1=0.6115  (best=0.6833)  33s/epoch
+  ep 20/30  val_macroF1=0.6434  (best=0.6833)  33s/epoch
+  ep 21/30  val_macroF1=0.6533  (best=0.6833)  33s/epoch
+  ep 22/30  val_macroF1=0.6940  (best=0.6940)  33s/epoch
+  ep 23/30  val_macroF1=0.6467  (best=0.6940)  34s/epoch
+  ep 24/30  val_macroF1=0.6791  (best=0.6940)  33s/epoch
+  ep 25/30  val_macroF1=0.6628  (best=0.6940)  34s/epoch
+  ep 26/30  val_macroF1=0.6021  (best=0.6940)  33s/epoch
+  ep 27/30  val_macroF1=0.6598  (best=0.6940)  34s/epoch
+  ep 28/30  val_macroF1=0.6267  (best=0.6940)  34s/epoch
+  ep 29/30  val_macroF1=0.6573  (best=0.6940)  33s/epoch
+  ep 30/30  val_macroF1=0.6819  (best=0.6940)  33s/epoch
+[A1_swin_in22k seed 0] xong sau 21.8 phut -> A1_swin_in22k_seed0.npz   (ca seed 23.5 phut, ngan sach con 3.81 gio)
+   best=0.6813  best_tta=0.6915  smooth=0.6588  smooth_tta=0.6683  top3=0.7028  top3_tta=0.7123
+
+>>> A1_swin_in22k  TEST macro-F1 (quy tac 'top3') = 0.7028 +/- 0.0000   tren 1 seed
+  A2_balanced_softmax OK |   7.0M tham so | dau vao 224x224
+[A2_balanced_softmax seed 0] bat dau huan luyen (30 epoch, batch 32)
+  ep 01/30  val_macroF1=0.4758  (best=0.4758)  33s/epoch
+  ep 02/30  val_macroF1=0.5904  (best=0.5904)  34s/epoch
+  ep 03/30  val_macroF1=0.5932  (best=0.5932)  34s/epoch
+  ep 04/30  val_macroF1=0.5891  (best=0.5932)  33s/epoch
+  ep 05/30  val_macroF1=0.6165  (best=0.6165)  33s/epoch
+  ep 06/30  val_macroF1=0.5998  (best=0.6165)  33s/epoch
+  ep 07/30  val_macroF1=0.6292  (best=0.6292)  33s/epoch
+  ep 08/30  val_macroF1=0.6225  (best=0.6292)  33s/epoch
+  ep 09/30  val_macroF1=0.6281  (best=0.6292)  33s/epoch
+  ep 10/30  val_macroF1=0.6473  (best=0.6473)  34s/epoch
+  ep 11/30  val_macroF1=0.6459  (best=0.6473)  34s/epoch
+  ep 12/30  val_macroF1=0.6286  (best=0.6473)  32s/epoch
+  ep 13/30  val_macroF1=0.6123  (best=0.6473)  32s/epoch
+  ep 14/30  val_macroF1=0.6273  (best=0.6473)  33s/epoch
+  ep 15/30  val_macroF1=0.6514  (best=0.6514)  32s/epoch
+  ep 16/30  val_macroF1=0.6218  (best=0.6514)  32s/epoch
+  ep 17/30  val_macroF1=0.6326  (best=0.6514)  33s/epoch
+  ep 18/30  val_macroF1=0.6703  (best=0.6703)  32s/epoch
+  ep 19/30  val_macroF1=0.6622  (best=0.6703)  33s/epoch
+  ep 20/30  val_macroF1=0.6341  (best=0.6703)  33s/epoch
+  ep 21/30  val_macroF1=0.6303  (best=0.6703)  32s/epoch
+  ep 22/30  val_macroF1=0.6489  (best=0.6703)  32s/epoch
+  ep 23/30  val_macroF1=0.6505  (best=0.6703)  32s/epoch
+  ep 24/30  val_macroF1=0.6113  (best=0.6703)  32s/epoch
+  ep 25/30  val_macroF1=0.6295  (best=0.6703)  32s/epoch
+  ep 26/30  val_macroF1=0.6477  (best=0.6703)  32s/epoch
+  ep 27/30  val_macroF1=0.6164  (best=0.6703)  32s/epoch
+  ep 28/30  val_macroF1=0.6390  (best=0.6703)  31s/epoch
+  ep 29/30  val_macroF1=0.6166  (best=0.6703)  32s/epoch
+  ep 30/30  val_macroF1=0.6425  (best=0.6703)  33s/epoch
+[A2_balanced_softmax seed 0] xong sau 21.2 phut -> A2_balanced_softmax_seed0.npz   (ca seed 22.7 phut, ngan sach con 3.43 gio)
+   best=0.6465  best_tta=0.6620  smooth=0.6685  smooth_tta=0.6665  top3=0.6831  top3_tta=0.6944
+
+>>> A2_balanced_softmax  TEST macro-F1 (quy tac 'top3') = 0.6831 +/- 0.0000   tren 1 seed
+
+So voi dong goc cung 1 seed:
+  A1_swin_in22k          0.7028  vs  S0_swin_t          0.6774   (+0.0254)
+  A2_balanced_softmax    0.6831  vs  B0_densenet121     0.6878   (-0.0047)

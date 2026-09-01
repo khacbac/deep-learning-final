@@ -1,0 +1,17 @@
+Quy tac doc: 'best'   (kien truc/do phan giai  x  cong thuc cu/moi)
+
+  cau hinh               cong thuc cu  cong thuc moi    don bay  seed
+  CoAtNet-0 @288               0.6424         0.7222    +0.0798  3 vs 3
+  CoAtNet-0 @224               0.6800         0.7071    +0.0271  3 vs 1
+  DenseNet-121 @224            0.6686         0.6611    -0.0075  3 vs 3
+
+  Doc ket qua:
+   [1] Tai CUNG do phan giai 224:  hybrid +0.0271  vs  CNN -0.0075   -> chenh +0.0346
+       -> KHAC nhau ro: don bay CO thanh phan 'cong thuc x kien truc'.
+          Day la o duy nhat trong bang cho phep noi cau do.
+   [2] Tai cung kien truc hybrid:  288 +0.0798  vs  224 +0.0271   -> chenh +0.0526
+       -> day la thanh phan DO PHAN GIAI x cong thuc.
+
+  Nguong phan giai cua phep do nay: CI bootstrap ~ +/-0,035 (RESULTS.md muc 9), nen muc
+  tang duoi ~0,02 KHONG chung minh duoc bang bo test 1.586 anh. Hai phep TRU HAI DON BAY
+  o tren con nhieu hon the (sai so cong don) -- doc chung nhu DAU + DO LON THO.

@@ -1,0 +1,14 @@
+IMG_SIZE -> 224 (dung augment 'plain')
+augment -> plain
+[T1_linear_probe seed 0] doc lai tu T1_linear_probe_seed0.npz (bo qua huan luyen)
+   best=0.5802  best_tta=0.5726  smooth=0.5802  smooth_tta=0.5726  top3=0.5561  top3_tta=0.5725
+
+>>> T1_linear_probe  TEST macro-F1 (quy tac 'top3_tta') = 0.5725 +/- 0.0000   tren 1 seed
+[T2_partial_unfreeze seed 0] doc lai tu T2_partial_unfreeze_seed0.npz (bo qua huan luyen)
+   best=0.6329  best_tta=0.6425  smooth=0.6182  smooth_tta=0.6319  top3=0.6431  top3_tta=0.6463
+
+>>> T2_partial_unfreeze  TEST macro-F1 (quy tac 'top3_tta') = 0.6463 +/- 0.0000   tren 1 seed
+[T3_progressive_lr seed 0] doc lai tu T3_progressive_lr_seed0.npz (bo qua huan luyen)
+   best=0.6400  best_tta=0.6513  smooth=0.6400  smooth_tta=0.6513  top3=0.6338  top3_tta=0.6472
+
+>>> T3_progressive_lr  TEST macro-F1 (quy tac 'top3_tta') = 0.6472 +/- 0.0000   tren 1 seed

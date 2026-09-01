@@ -11,13 +11,13 @@ moi o giua se khong lam lech mapping. Script bao loi neu khong tim thay.
 import base64, io, json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-NB = os.path.join(HERE, os.pardir, "notebooks", "gastrovision_classification.ipynb")
+NB = os.path.join(HERE, os.pardir, "notebooks", "final-gastrovision-classification.ipynb")
 CR, LF = chr(13), chr(10)
 
 # ten file  ->  dong dau cua source cell (khop tien to)
 TABLES = [
     ("00_gpu",                      "# Kiem tra GPU truoc khi lam bat cu viec gi khac."),
-    ("01_moi_truong",               "import os, sys, io, json, math, time, random, hashlib"),
+    ("01_moi_truong",               "import os, sys, io, json, math, time, copy, random"),
     ("02_ho_so_chay",               "# --------------------------- CAU HINH THUC NGHIEM"),
     ("03_quet_anh",                 "IMG_EXT = {"),
     ("04_loc_lop_22",               "# --- Quet thu muc lop theo DE QUY + loc theo luat cua bai bao"),
@@ -27,13 +27,16 @@ TABLES = [
     ("08_audit_gan_trung",          "# --- Lop 2: gan trung (cosine tren embedding da pretrain) ---"),
     ("09_bo_danh_gia",              "ALL_LABELS = list(range(NUM_CLASSES))"),
     ("10_ba_kien_truc",             "def build_densenet121(nc):"),
-    ("11_gate0a_tat_dinh",          "RUN_DETERMINISM_CHECK = True"),
+    ("11_gate0a_tat_dinh",          "RUN_DETERMINISM_CHECK = "),
     ("12_B0_densenet121",           "set_img_size(224)"),
     ("13_S0_swin_t",                "res_s0 = run_seeds(build_swin_t"),
     ("14_P0_coatnet0",              "res_p0 = run_seeds(build_coatnet0"),
-    ("15_P1_coatnet0_288",          "RUN_P1_288 = True"),
-    ("16_bang_6_quy_tac",           "rows = []"),
+    ("15_P1_coatnet0_288",          "RUN_P1_288 = "),
+    ("15b_P2_cong_thuc_hien_dai",   "RUN_P2               = "),
+    ("15c_P2_tach_don_bay",         "# --- Doc ket qua P2: tach don bay CONG THUC"),
+    ("16_bang_6_quy_tac",           "# CHI BON CAU HINH GOC duoc bo phieu chon quy tac"),
     ("17_bootstrap_ci",             "# Thanh sai so bootstrap tren seed dau tien"),
+    ("17b_so_sanh_theo_cap",        "# --- Bang so sanh theo cap, quy tac SELECTION_RULE"),
     ("18_per_class_va_confusion",   "FOCUS = max(RESULTS_STORE"),
     ("19_donbay_hieuchinh_logit",   'print(f"=== Don bay 2: hieu chinh logit'),
     ("20_donbay_ensemble_kientruc", 'print("=== Don bay 3: ensemble nhieu kien truc'),
@@ -62,7 +65,13 @@ def flatten_cr(text):
 
     Khong lam viec nay thi cac thanh tien trinh (tqdm, tai model tu HF) bi noi
     thanh mot dong dai va che mat dong ket qua thuc su nam ngay sau chung.
-    """
+
+    NHUNG phai chuan hoa CRLF -> LF TRUOC (sua 2026-08-31): Kaggle chay `!nvidia-smi`
+    qua subprocess Windows-style nen moi dong ket thuc bang CRLF. Luat "giu doan sau CR
+    cuoi" khi do bien "abc" thanh chuoi RONG -> ca bang 00_gpu ra file trong ma script
+    chi canh bao "cell chua chay?" chu khong bao loi. CRLF la ket thuc dong, khong phai
+    lenh ve dau dong."""
+    text = text.replace(CR + LF, LF)
     return LF.join(line.split(CR)[-1] for line in text.split(LF))
 
 

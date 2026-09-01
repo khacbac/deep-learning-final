@@ -1,6 +1,6 @@
 """Sinh notebook CPU-ONLY cho Final Project - GastroVision (AIN501 Deep Learning).
 
-Khac voi notebooks/gastrovision_classification.ipynb (thiet ke cho Colab GPU),
+Khac voi notebooks/final-gastrovision-classification.ipynb (thiet ke cho Colab GPU),
 notebook nay EP TOAN BO thuat toan chay tren CPU:
   - an CUDA truoc khi import torch (CUDA_VISIBLE_DEVICES=""),
   - chan moi loi goi .cuda() / .to("cuda") bang guard,
@@ -48,7 +48,7 @@ md(r"""
 
 ## 1. Notebook này là gì
 
-Đây là **phiên bản chuẩn hoá chạy CPU** của `gastrovision_classification.ipynb`.
+Đây là **phiên bản chuẩn hoá chạy CPU** của `final-gastrovision-classification.ipynb`.
 Mọi phép tính — huấn luyện, đánh giá, đo độ trễ — đều bị **ép chạy hoàn toàn trên CPU**,
 kể cả khi máy có GPU NVIDIA. Ba lớp bảo vệ:
 
@@ -856,7 +856,7 @@ md(r"""
   mọi lời gọi `.cuda()` bị chặn, `check_forward` xác nhận từng tham số/buffer nằm trên CPU.
 * Kết quả ở hồ sơ `cpu-lite` chỉ để **kiểm thử pipeline** — muốn số CPU thật, đổi
   `PROFILE = "cpu-full"` và chấp nhận thời gian chạy nhiều giờ.
-* Con số đưa vào báo cáo chính vẫn lấy từ bản GPU (`gastrovision_classification.ipynb`);
+* Con số đưa vào báo cáo chính vẫn lấy từ bản GPU (`final-gastrovision-classification.ipynb`);
   bản CPU đóng góp: (1) bằng chứng pipeline tất định và chạy được không cần GPU,
   (2) số đo **độ trễ suy luận CPU** cho phần triển khai.
 """)

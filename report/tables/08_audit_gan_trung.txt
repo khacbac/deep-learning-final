@@ -1,5 +1,5 @@
 Downloading: "https://download.pytorch.org/models/mobilenet_v3_small-047dcff4.pth" to /root/.cache/torch/hub/checkpoints/mobilenet_v3_small-047dcff4.pth
-embedding 7930 anh trong 78s  -> shape (7930, 576)
+embedding 7930 anh trong 79s  -> shape (7930, 576)
 
 Cap GAN TRUNG (cosine >= 0.98) nam o HAI tap khac nhau: 9
    1.0000  val/Colon polyps/ba615bcd-2f99-4a12-884d-d9cd2c04c2a1.jpg   <->   train/Colon polyps/ckda1fpc5000l3a5s17a45xql.jpg

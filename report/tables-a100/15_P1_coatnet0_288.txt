@@ -1,0 +1,11 @@
+IMG_SIZE -> 288 (dung augment 'plain')
+augment -> plain
+[P1_coatnet0_288 seed 0] doc lai tu P1_coatnet0_288_seed0.npz (bo qua huan luyen)
+   best=0.6768  best_tta=0.6866  smooth=0.6884  smooth_tta=0.6946  top3=0.6802  top3_tta=0.6941
+[P1_coatnet0_288 seed 1] doc lai tu P1_coatnet0_288_seed1.npz (bo qua huan luyen)
+   best=0.6609  best_tta=0.6649  smooth=0.6644  smooth_tta=0.6672  top3=0.7045  top3_tta=0.6980
+[P1_coatnet0_288 seed 2] doc lai tu P1_coatnet0_288_seed2.npz (bo qua huan luyen)
+   best=0.6556  best_tta=0.6680  smooth=0.6592  smooth_tta=0.6584  top3=0.6869  top3_tta=0.6961
+
+>>> P1_coatnet0_288  TEST macro-F1 (quy tac 'best') = 0.6645 +/- 0.0090   tren 3 seed
+IMG_SIZE -> 224 (dung augment 'plain')

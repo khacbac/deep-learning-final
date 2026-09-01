@@ -1,0 +1,24 @@
+DU DIA CON LAI NAM O DAU -- P2_coatnet0_288_modern seed 0, quy tac 'top3'
+Phan ra so hoc cua khoang cach den tran 1,0. KHONG phai du bao.
+
+macro-F1 hien tai = 0.7166   -> con 0.2834 den tran ly thuyet 1,0
+
+Neu HOAN HAO o...                                     macro-F1       gop  % du dia
+15 lop HIEM (< 50 anh test)                             0.9580   +0.2415     85.2%
+7 lop PHO BIEN (>= 50 anh test)                         0.7585   +0.0420     14.8%
+
+chi 2 lop 6 anh test                                    0.7717   +0.0552
+chi 5 lop yeu nhat                                      0.8506   +0.1340
+
+So anh TRAIN va F1 trung binh cua moi nhom:
+  15 lop hiem    :   73.5 anh/lop   F1 TB 0.646
+  7 lop pho bien :  522.1 anh/lop   F1 TB 0.868
+
+Doc the nao -- va day la bang quyet dinh CO NEN TIEU THEM GIO GPU:
+ - 85% du dia nam o 15 lop hiem, trung binh 73,5 anh train moi lop. Rieng HAI lop 6 anh giu
+   +0,0552, tuc NHIEU HON ca don bay cong thuc (+0,0443) -- don bay lon nhat da do duoc.
+ - Nghia la moi lever nham vao MO HINH deu dang tranh nhau 15% du dia con lai o cac lop da
+   bao hoa, con 85% thi nam o cho ma chi THEM DU LIEU (hoac few-shot) moi cham duoc.
+ - Cong voi nguong phan giai +/-0,035 cua bo test nay: mot lever nham vao mo hinh phai mua
+   duoc > 0,035 moi chung minh duoc, ma tran cua toan bo nhom lop pho bien chi la +0,0420.
+   Vay KHONG con lever nao thuoc ho 'doi mo hinh' co the chung minh duoc tren bo test nay.

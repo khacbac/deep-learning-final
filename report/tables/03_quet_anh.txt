@@ -1,7 +1,7 @@
-Mounted at /content/drive
-dang tai Gastrovision.zip (~1.8 GB, chi lan dau)...
-kich thuoc zip: 1794 MB -> dang giai nen...
-giai nen zip long: Gastrovision.zip
+moi truong: Kaggle   (goi google.colab co cai)
+doc lai ket qua phien truoc tu: /kaggle/input/gastrovision-ckpts-t4, /kaggle/input/notebooks/khacbac/final-gastrovision-classification/gastrovision_ckpts
+dung dataset anh da gan: /kaggle/input/notebooks
 
-DATA_DIR = /content/gastrovision  | tong so anh: 8000
-CKPT_DIR = /content/drive/MyDrive/gastrovision_ckpts
+DATA_DIR = /kaggle/input/notebooks  | tong so anh: 8006
+CKPT_DIR = /kaggle/working/gastrovision_ckpts   (ghi)
+           doc them: /kaggle/input/gastrovision-ckpts-t4, /kaggle/input/notebooks/khacbac/final-gastrovision-classification/gastrovision_ckpts
