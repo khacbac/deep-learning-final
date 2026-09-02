@@ -1431,4 +1431,65 @@ thuần lý thuyết. Nó **không** chứng minh `P4` sẽ dương — IN-22k k
 | Đã xong | `B0` `S0` `P0` `P1` `P2` `P2b` × 3 seed · `P2c` `A1` `A2` × 1 seed · T1–T4 · bậc M |
 | Không chạy (**chốt 01-09-2026, hết quota**) | `P3` (bỏ vì lý do chuyên môn), `P4`, `P5` — đều thành hướng phát triển tiếp |
 | Rẻ nhất đã bỏ lỡ | `P2c` seed 1+2 (~3,3 h T4) — sẽ biến số hạng tương tác từ 1 seed thành 3 seed; **đây là hạn chế còn lại của báo cáo**, không phải một việc đang chờ |
-| Còn **thiếu** thật sự | **slide** · bằng chứng demo Gradio (mục 29 vẫn skip vì `.pt` không đi theo dataset checkpoint) |
+| Còn **thiếu** thật sự | ~~slide~~ ✅ *02-09-2026* — `report/slides.html` (dựng từ `report/build_slides.py`, nội dung theo đúng thứ tự lập luận của `BAO_CAO.md`) · ~~bằng chứng demo Gradio~~ ✅ *02-09-2026* — demo chạy thật đầu-cuối trên CPU kèm screenshot, xem §11.2; điều còn thiếu đúng nghĩa là demo với chính checkpoint `P2` của vòng T4 (`.pt` không đi theo dataset checkpoint) |
+
+---
+
+## 11. CPU full-data run — notebook CPU-only trên toàn bộ 7.930 ảnh (2026-08-29, khôi phục 2026-09-02)
+
+> Mục này từng là §10 của commit `52c191a` và bị rơi mất khi RESULTS.md được viết lại toàn bộ ở
+> `e773138` (dán đè từ bản trên máy khác — không cố ý). Khôi phục lại đây, cập nhật phần so sánh
+> theo bộ số T4 hiện hành, và bổ sung §11.2 (bằng chứng demo, 02-09-2026).
+
+`gastrovision_classification_cpu.ipynb` (sinh bởi `build_cpu_notebook.py`) — bản **CPU-only**:
+ẩn CUDA trước khi `import torch`, chặn mọi lời gọi `.cuda()`, fp32 thuần không AMP. Đã chạy trọn
+vẹn hai lần bằng `nbconvert` trên máy cá nhân (12 threads, torch 2.13.0+cpu, Python 3.14), hồ sơ
+**`cpu-full`**: toàn bộ 7.930 ảnh, đúng split `SPLIT_SEED = 42` (4.758 / 1.586 / 1.586 — trùng mọi
+vòng GPU), **15 epoch, batch 16, chỉ seed 0**. Dữ liệu tải mới từ OSF (Google Drive chặn `gdown`),
+MD5 khớp bản công bố (`90aabf906e153f7bac4548765402d4c7`), quét lớp tái lập đúng 27 thư mục /
+8.000 ảnh → 22 lớp / 7.930.
+
+### 11.1 macro-F1 test, seed 0, cả 6 quy tắc
+
+| Cấu hình | best | smooth | top3 | best_tta | smooth_tta | top3_tta |
+|---|---|---|---|---|---|---|
+| `B0_densenet121_cpu` @224 | **0.6844** | 0.6665 | **0.6969** | 0.6764 | 0.6689 | 0.6883 |
+| `M0_mobilenetv3_cpu` @224 | 0.6191 | 0.6191 | 0.6649 | 0.6434 | 0.6434 | 0.6737 |
+
+Bootstrap CI95 (1.000 lần lấy lại mẫu, logits seed 0) cho DenseNet-121: `best` **[0.6343, 0.7204]**,
+`top3` **[0.6495, 0.7328]**. Accuracy (micro-F1) của `M0` = 0.789.
+
+### So với các mốc khác — đọc kèm cảnh báo giao thức
+
+| Lần chạy | Giao thức | best | top3 |
+|---|---|---|---|
+| Paper DenseNet-121 (Table 2) | 150 ep, batch 32, TITAN Xp, 1 run | 0.6504 | — |
+| `B0` T4 (§10.9, bộ số hiện hành) | 30 ep, batch 32, fp16, 3 seed | 0.6686 ± 0.0234 | 0.6780 |
+| `B0_densenet121_cpu` | **15 ep, batch 16**, fp32 CPU, 1 seed | 0.6844 | 0.6969 |
+| `P2` T4 (hệ thống đề xuất) | 80 ep công thức hiện đại, 3 seed | — | 0.7298 (hệ thống đầy đủ 0.7441) |
+
+**Caveat bắt buộc khi trích 0.6844:** (1) **không cùng giao thức** — batch 16 ≠ 32 đổi cả LR hiệu
+dụng lẫn số bước cập nhật, nên đây là *phép đo tính khả thi trên CPU*, không phải một lần tái lập
+nữa; (2) **1 seed** — σ của `B0` trên T4 là ±0.0234, và Gate 0a đã chứng minh đổi phần cứng = đổi
+mô hình, nên 0.6844 nằm gọn trong vùng "seed may mắn + giao thức khác"; (3) val đạt đỉnh **epoch
+7/15** (0.6806) — 15 epoch không phải ràng buộc; (4) điều nó *gợi ý* (chưa chứng minh): batch nhỏ
+đáng một dòng ablation có kiểm soát batch 16 vs 32 trên GPU. **Kết luận nhất quán với §10:** dưới
+`top3_tta`, MobileNetV3 (4,2M tham số) chỉ thua DenseNet 0.015 (0.6737 vs 0.6883, CI chồng lấn
+mạnh) ở **3,3× nhanh hơn** — đòn bẩy *cách đo* bù gần hết khoảng cách kiến trúc, đúng câu chuyện
+của báo cáo.
+
+Chi phí & số triển khai CPU (12 threads, fp32): DenseNet-121 train 225 phút (~810 s/epoch), suy
+luận **72.1 ms/ảnh** @ batch 1; MobileNetV3-L train 82 phút, **21.7 ms/ảnh**, 16.9 MB. Artifact:
+`checkpoints_cpu/*.npz|pt` (local, gitignore), notebook đã chạy + `outputs_cpu/` trong git.
+
+### 11.2 Bằng chứng demo Gradio — chạy thật đầu-cuối trên CPU (2026-09-02)
+
+Khoảng trống "không có screenshot demo" (ghi ở cuối §10 và BAO_CAO mục 7.2) được khép một nửa bằng
+`report/demo/demo_gradio_cpu.py`: nạp `B0_densenet121_cpu_seed0.pt`, **tự kiểm đường suy luận trên
+20 ảnh test thật trước khi dựng UI** (14/20 đúng — khớp accuracy 0.789 của vòng CPU), dựng Gradio
+(top-5 + TTA lật ngang, đúng dạng đầu ra của §20b), rồi Playwright (Chromium headless) upload một
+ảnh test, bấm Submit và chụp màn hình khi kết quả hiện ra (top-1 *Accessory tools* p = 0.961).
+
+* Bằng chứng: `report/demo/29b_demo_gradio_cpu.png` (screenshot UI đầy đủ) + `29b_demo_gradio_cpu.txt` (log).
+* Vẫn đúng hai caveat của BAO_CAO 7.2: demo là **1 checkpoint + TTA**, yếu hơn hệ thống được báo
+  cáo, và checkpoint là của vòng CPU chứ **không phải** `P2` của vòng T4 — hai điều đó không đổi.

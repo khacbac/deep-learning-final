@@ -1248,14 +1248,25 @@ demo: da nap P1_coatnet0_288 seed 0 @ 288px tren cuda
   tu kiem tra: that = 'Accessory tools' | du doan = 'Accessory tools' (1.000)
 ```
 
+* **Bằng chứng chạy thật đầu-cuối, kèm ảnh chụp UI (bổ sung 02-09-2026, trên CPU):** demo được dựng
+  lại và chạy trọn vẹn trên máy **không GPU** với checkpoint `B0_densenet121_cpu_seed0` của vòng CPU
+  (macro-F1 test **0,6844** quy tắc `best` — `../RESULTS.md` §11). Kịch bản giữ đúng kỷ luật của
+  §20b: tự kiểm đường suy luận trên **20 ảnh test thật trước khi dựng UI** (14/20 đúng, khớp
+  accuracy 0,789 của vòng đó), rồi Playwright upload một ảnh test, bấm Submit và chụp màn hình khi
+  top-5 hiện ra (top-1 *Accessory tools* p = **0,961**). Ảnh + log + script tái chạy:
+  `demo/29b_demo_gradio_cpu.png` · `demo/29b_demo_gradio_cpu.txt` · `demo/demo_gradio_cpu.py`.
+
+![Demo Gradio chạy thật trên CPU — top-1 Accessory tools 0,961](demo/29b_demo_gradio_cpu.png)
+
 > ⚠️ **Hai khoảng trống phải nêu, và cả hai đều là khoảng trống kỹ thuật đã biết, không phải lựa chọn
 > thiết kế.**
 >
-> **1. Bằng chứng demo là của vòng A100, không phải vòng T4.** Nhánh resume của notebook cố tình
+> **1. Bằng chứng demo không thuộc vòng T4 đang báo cáo.** Nhánh resume của notebook cố tình
 > **không** copy các file `.pt` (~100 MB mỗi file) từ nguồn chỉ-đọc về nơi ghi, nên ở vòng T4 ô demo
 > báo *"không thấy `P1_coatnet0_288_seed0.pt`"* và bị bỏ qua. Đường suy luận không đổi giữa hai vòng,
-> nhưng phát biểu đúng là *"demo đã được chạy thật ở vòng A100"*, không phải *"demo chạy được ở vòng
-> đang báo cáo"*. Cách khép lại: đưa `P2_coatnet0_288_modern_seed0.pt` vào nguồn dữ liệu của phiên.
+> nhưng phát biểu đúng là *"demo đã được chạy thật ở vòng A100 và (02-09-2026) ở vòng CPU, kèm
+> screenshot"*, không phải *"demo chạy được với checkpoint của vòng đang báo cáo"*. Cách khép lại
+> hoàn toàn: đưa `P2_coatnet0_288_modern_seed0.pt` vào nguồn dữ liệu của phiên.
 >
 > **2. Demo yếu hơn hệ thống được báo cáo.** `run_seeds` chỉ lưu **một** checkpoint tốt nhất, nên
 > demo chạy 1 checkpoint + TTA, **không phải** hệ thống `top3` + hiệu chỉnh logit (0,7441). Với `P2`,
@@ -1316,7 +1327,9 @@ Tám điều chúng tôi biết là yếu, xếp theo mức độ ảnh hưởng
 > Chi tiết: `../RESULTS.md` §10.10.
 
 7. **Sản phẩm demo yếu hơn hệ thống được báo cáo** (`best_tta` 0,7199 so với 0,7441), và bằng chứng
-   demo hiện là của vòng A100 (mục 7.2). **Không có ID bệnh nhân**, nên không loại trừ được khả năng
+   demo gồm log vòng A100 và một lần chạy đầu-cuối kèm screenshot trên CPU với checkpoint `B0` của
+   vòng CPU (02-09-2026, mục 7.2) — vẫn chưa có demo với chính checkpoint `P2` của vòng T4.
+   **Không có ID bệnh nhân**, nên không loại trừ được khả năng
    nhiều frame của cùng một ca nằm khác tập; audit cosine là một xấp xỉ, và 9 cặp nó tìm ra là **chặn
    dưới**, không phải chặn trên.
 8. **Một bảng trong notebook đã được in ra dưới sai quy tắc chấm điểm.** Ô §15c đọc `SELECTION_RULE`,

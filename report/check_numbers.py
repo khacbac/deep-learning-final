@@ -148,6 +148,10 @@ CHECKS = [
     ("13.0", "tables/28_trien_khai_onnx_do_tre.txt", "CoAtNet@288 ms @ batch 1"),
     ("8.74", "tables/28_trien_khai_onnx_do_tre.txt", "CoAtNet@288 ms @ batch 32"),
     ("114.8", "tables/28_trien_khai_onnx_do_tre.txt", "kich thuoc ONNX cua P2"),
+    # --- muc 7.2: bang chung demo chay that tren CPU (02-09-2026) ---
+    ("0.6844", None, "B0 CPU full-data, quy tac 'best' -- nguon: ../RESULTS.md muc 11"),
+    ("0.789", None, "accuracy vong CPU full-data -- nguon: ../RESULTS.md muc 11"),
+    ("0.961", "demo/29b_demo_gradio_cpu.txt", "top-1 cua demo CPU (Accessory tools)"),
 ]
 
 

@@ -1,0 +1,26 @@
+demo: da nap B0_densenet121_cpu seed 0 @ 224px tren cpu
+checkpoint: B0_densenet121_cpu_seed0.pt (28.5 MB)
+self-check: a7d5e8f5-c8e8-4fd3-9fb9-c65a0ced46a7.jpg | that: Accessory tools | doan: Accessory tools (p=0.961) -> DUNG
+self-check: eb54a5a2-b122-4dbb-b3db-b0f7d26985aa.jpg | that: Colon polyps | doan: Colon polyps (p=0.874) -> DUNG
+self-check: 06e952ab-9143-47cd-8426-759a3f2517c8.jpg | that: Small bowel_terminal ileum | doan: Small bowel_terminal ileum (p=0.974) -> DUNG
+self-check: 01b50f2d-517f-4e7a-8be6-07db979214f6.jpg | that: Normal stomach | doan: Normal stomach (p=1.000) -> DUNG
+self-check: 91507f9c-440c-46d7-9174-507c52329f4e.jpg | that: Blood in lumen | doan: Colon polyps (p=0.821) -> SAI
+self-check: ed7eab79-9ec6-4dc4-ab32-0468614d3aff.jpg | that: Colon polyps | doan: Colorectal cancer (p=0.589) -> SAI
+self-check: 061e5669-f151-45fa-9e4b-e2cda2b2a2b1.jpg | that: Normal mucosa and vascular pattern in the large bowel | doan: Normal mucosa and vascular pattern in the large bowel (p=0.467) -> DUNG
+self-check: 06120c70-b7d4-4033-888a-079b29db0f54.jpg | that: Small bowel_terminal ileum | doan: Small bowel_terminal ileum (p=0.969) -> DUNG
+self-check: 8dbc33db-39e2-40ee-82cd-d7d8042cb8a8.jpg | that: Normal mucosa and vascular pattern in the large bowel | doan: Cecum (p=0.929) -> SAI
+self-check: 0a88d316-97fc-4ad8-94fd-7be392f6698d.jpg | that: Esophagitis | doan: Esophagitis (p=0.742) -> DUNG
+self-check: 1a584425-b05f-4e74-a483-c6d736d5ff0b.jpg | that: Colon polyps | doan: Colon polyps (p=0.926) -> DUNG
+self-check: 0c7a36f5-f00a-423f-ac34-e67dfc20e712.jpg | that: Normal esophagus | doan: Normal esophagus (p=0.934) -> DUNG
+self-check: b0f22a20-8dd2-423c-8c6d-ccc399f5d2c4.jpg | that: Accessory tools | doan: Accessory tools (p=0.988) -> DUNG
+self-check: 1129fb84-ab57-4fa8-99f0-8ea414b956d0.jpg | that: Cecum | doan: Normal mucosa and vascular pattern in the large bowel (p=0.535) -> SAI
+self-check: 0e3878a8-aa25-48f3-93f0-1ed6067b5104.jpg | that: Small bowel_terminal ileum | doan: Small bowel_terminal ileum (p=0.997) -> DUNG
+self-check: 65850168-854f-4f62-a2f0-dfed84c78b9f.jpg | that: Duodenal bulb | doan: Duodenal bulb (p=0.916) -> DUNG
+self-check: 09bba0a4-a9e8-41a8-9627-6846253db208.jpg | that: Normal esophagus | doan: Gastroesophageal_junction_normal z-line (p=0.889) -> SAI
+self-check: 1ae1d49c-c24e-44fb-8b38-6717389fe294.jpg | that: Normal mucosa and vascular pattern in the large bowel | doan: Cecum (p=0.949) -> SAI
+self-check: eb2014e2-1706-423a-9d62-88d8483a936a.jpg | that: Colon polyps | doan: Colon polyps (p=0.949) -> DUNG
+self-check: 799acbcb-a653-4aee-b73a-ae4cd13a4d49.jpg | that: Dyed-lifted-polyps | doan: Dyed-resection-margins (p=0.865) -> SAI
+anh dung cho UI: C:\Users\QuangLT1\Desktop\MSE\07. Deep Learning\Final project\deep-learning-final\data\Gastrovision\Accessory tools\a7d5e8f5-c8e8-4fd3-9fb9-c65a0ced46a7.jpg
+top-5: Accessory tools=0.961, Resected polyps=0.011, Mucosal inflammation large bowel=0.007, Normal mucosa and vascular pattern in the large bowel=0.006, Cecum=0.004
+gradio: UI phuc vu tai http://127.0.0.1:7861
+screenshot: 29b_demo_gradio_cpu.png (524 KB)
