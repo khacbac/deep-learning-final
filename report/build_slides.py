@@ -149,11 +149,11 @@ def slide(no, total, section, body, footer_l="GastroVision · AIN501 Deep Learni
     return f"""<section class="slide {cls}" id="s{no}">
 <header><span class="eyebrow">{section}</span><span class="pageno">{no:02d} / {total}</span></header>
 <div class="body">{body}</div>
-<footer><span>{footer_l}</span><span>02-09-2026</span></footer>
+<footer><span>{footer_l}</span><span>04-09-2026</span></footer>
 </section>"""
 
 
-T = 14
+T = 15
 S = []
 
 S.append(slide(1, T, "AIN501 · Final Project", f"""
@@ -335,7 +335,33 @@ MobileNetV3-L <span class="mono">21,7 ms/ảnh</span>.</li>
 </ul>
 </div>"""))
 
-S.append(slide(14, T, "Kết luận", """
+S.append(slide(14, T, "Triển khai · Vòng CPU", """
+<h2>Không có GPU vẫn vượt baseline — vòng CPU 3 seed</h2>
+<div class="cols c2">
+<div>
+<table>
+<tr><th>DenseNet-121 (top3)</th><th class="num">macro-F1</th></tr>
+<tr><td>T4 · 30 ep · batch 32 · fp16</td><td class="num">0,6780 ± 0,0073</td></tr>
+<tr><td>CPU · 15 ep · batch 16 · fp32</td><td class="num">0,6919 ± 0,0060</td></tr>
+</table>
+<p class="note" style="margin-top:14px">Hai giao thức <strong>khác nhau</strong> — chênh lệch là
+"giao thức + nhiễu", không phải "CPU tốt hơn" (dưới quy tắc best hai phép đo chồng hẳn:
+0,6709 ± 0,0163 vs 0,6686 ± 0,0234). Chi tiết: BAO_CAO mục 7.3.</p>
+</div>
+<div>
+<div class="stat"><span class="v">0,7059</span>
+<span class="k">hệ thống tuyên bố trước: top3 + ensemble 3 seed · CI 95% <strong>[0,6560; 0,7447]</strong>
+— <strong>không chứa 0,6504</strong> · accuracy 0,8386 &gt; 0,8203 của bài báo</span></div>
+<ul style="margin-top:18px">
+<li>Chi phí: <strong>0 đồng</strong> — 3 × ~230 phút CPU chạy đêm, 12 threads.</li>
+<li><code>top3</code> bền nhất (σ 0,0060) và hiệu chỉnh logit <em>phẳng</em> khi thiếu công thức
+hiện đại — <strong>tái xác nhận hai phát hiện phương pháp trên phần cứng thứ ba</strong>.</li>
+<li>Claim <strong>độc lập</strong> với thang T4 (Gate 0a) — không thay thế con số P2 0,7441.</li>
+</ul>
+</div>
+</div>"""))
+
+S.append(slide(15, T, "Kết luận", """
 <h2>Kết luận — và những gì được nói thẳng</h2>
 <ul>
 <li><strong>Tái lập được</strong> 0,6504 (0,6686 ± 0,0234, +0,78σ) và <strong>vượt nó</strong>:
