@@ -594,6 +594,12 @@ và mục 5.3 cho thấy chỉ <strong>một</strong> trong sáu cấu hình đ�
 DenseNet-121 đạt đỉnh val ở <strong>epoch 6/30</strong> (mục 5.4), nên 120 epoch còn lại chưa bao giờ có cơ hội
 giúp nó. Giao thức 30-epoch là <strong>công bằng với baseline</strong>. Nó chỉ <strong>bảo thủ với công thức hiện đại</strong>,
 và đó chính là lý do <code>P2</code> được cho 80 epoch — một chênh lệch được nêu rõ ở mục 3.2 chứ không làm mờ.</p>
+<blockquote class="warn">
+<p>⚠️ <strong>Cùng baseline này còn được đo lần nữa trên CPU, và con số ở đó cao hơn — đừng để nó gây
+nhầm.</strong> Vòng CPU (mục 7.3) chạy DenseNet-121 dưới một giao thức <strong>khác</strong> (batch 16, 15 epoch,
+fp32) và cho 0,6709 ± 0,0163 dưới <code>best</code> — chồng hẳn lên 0,6686 ± 0,0234 của dòng trên. Hai cột số
+đó <strong>không so trực tiếp được với nhau</strong>; mục 7.3 nói rõ mỗi con số được phép dùng để kết luận gì.</p>
+</blockquote>
 
 <header class="sec" id="m2-ph-n-t-ch-d-li-u-eda"><div class="s-meta"><span class="s-num">2</span><span class="s-w">20% của rubric</span></div><h2>Phân tích dữ liệu (EDA)</h2><div class="s-bar" role="img" aria-label="trọng số 20 phần trăm"><span style="width:20%"></span></div></header>
 <h3>2.1 Từ 8.000 ảnh xuống 7.930, từ 27 lớp xuống 22</h3>
@@ -2675,6 +2681,114 @@ demo chạy 1 checkpoint + TTA, <strong>không phải</strong> hệ thống <cod
 thái (~1,3 GB) và huấn luyện lại; các lượt chạy cũ không thể bù ngược. Con số của <strong>sản phẩm demo</strong>
 vì vậy thấp hơn con số của <strong>hệ thống được báo cáo</strong>, và hai con số đó không được lẫn.</p>
 </blockquote>
+<h3>7.3 Baseline trên GPU và trên CPU — hai phép đo, hai giới hạn</h3>
+<p>Hai baseline chính thức của báo cáo (<code>B0</code> DenseNet-121, <code>S0</code> Swin-T) được đo trên <strong>T4</strong> — đó là
+các con số của mục 1.4 và 5.3. Một <strong>vòng CPU độc lập</strong> (notebook
+<code>gastrovision_classification_cpu.ipynb</code> + <code>train_cpu_seeds.py</code>, máy 12 threads, fp32) đo lại
+DenseNet-121 với <strong>3 seed</strong> và thêm MobileNetV3-L làm mô hình triển khai; <strong>Swin-T chưa được đo trên
+CPU</strong> — một khoảng trống đã biết, không phải một phép đo bị giấu. Nguồn số:
+<code>tables-cpu/37</code>–<code>38</code> (sinh bởi <code>report/offline_tables_cpu.py</code>, 0 GPU).</p>
+<div class="wide tw"><table>
+<thead>
+<tr>
+<th>Phép đo</th>
+<th>Giao thức</th>
+<th>best</th>
+<th>top3</th>
+<th>ms/ảnh @ b1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bài báo, DenseNet-121</td>
+<td>150 ep · batch 32 · TITAN Xp · 1 run</td>
+<td>0,6504</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>B0</code> T4 <em>(chính thức)</em></td>
+<td>30 ep · batch 32 · fp16 · 3 seed</td>
+<td>0,6686 ± 0,0234</td>
+<td>0,6780 ± 0,0073</td>
+<td>15,4 (ONNX T4)</td>
+</tr>
+<tr>
+<td><code>B0</code> CPU</td>
+<td><strong>15 ep · batch 16</strong> · fp32 · 3 seed</td>
+<td>0,6709 ± 0,0163</td>
+<td><strong>0,6919 ± 0,0060</strong></td>
+<td>72,1 (CPU)</td>
+</tr>
+<tr>
+<td><code>M0</code> MobileNetV3-L CPU</td>
+<td>như trên, 1 seed</td>
+<td>0,6191</td>
+<td>0,6649</td>
+<td><strong>21,7</strong> (CPU)</td>
+</tr>
+<tr>
+<td><code>S0</code> Swin-T</td>
+<td><em>chưa đo trên CPU</em></td>
+<td>0,6599 (T4)</td>
+<td>0,6813 (T4)</td>
+<td>19,5 (ONNX T4)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Vì sao cột CPU cao hơn cột T4 — và vì sao điều đó <em>không</em> nói lên gì về phần cứng.</strong> Dưới quy tắc
+<code>best</code>, hai phép đo chồng hẳn lên nhau (0,6709 ± 0,0163 so với 0,6686 ± 0,0234). Dưới <code>top3</code>, chênh
++0,0139 ≈ 1,5σ gộp — nhưng batch 16 so với 32 đổi cả LR hiệu dụng lẫn nhịp cập nhật (tổng số bước
+xấp xỉ nhau: ~4.460), fp32 so với fp16 đổi quỹ đạo huấn luyện, và Gate 0a (mục 2.5) đã chứng minh
+đổi phần cứng = đổi mô hình ngay cả khi mọi thứ khác giữ nguyên. Chênh lệch này là <strong>"giao thức
+khác + nhiễu"</strong>, chưa phải một hiệu ứng; nếu muốn biến nó thành hiệu ứng thì phép đo đúng là
+ablation batch 16 vs 32 <strong>trên cùng GPU</strong> — một hướng phát triển, không phải một kết luận sẵn có.</p>
+<p>Vòng CPU cũng <strong>tái xác nhận độc lập hai phát hiện phương pháp</strong> của báo cáo, trên phần cứng thứ
+ba: (a) <code>top3</code> bền nhất — σ = 0,0060, so với 0,0163 của <code>best</code>; (b) <strong>hiệu chỉnh logit phẳng khi
+không có công thức hiện đại</strong> — τ<em> dò trên val chỉ còn 0,1 và <code>top3</code> test </em>giảm* khi áp (bảng 38),
+đúng như phát hiện 3 của <code>P1</code> (mục 3.7): lever này chỉ trả tiền khi đứng trên <code>P2</code>.</p>
+<p><strong>Và một claim riêng của vòng CPU, đúng chuẩn CI của mục 1.4</strong> — hệ thống tuyên bố trước khi đo
+(DenseNet-121 · quy tắc <code>top3</code> · ensemble xác suất 3 seed):</p>
+<blockquote class="note">
+<p><strong>macro-F1 = 0,7059, bootstrap CI 95% [0,6560; 0,7447] — không chứa 0,6504.</strong>
+micro-F1 (accuracy) = <strong>0,8386</strong> so với 0,8203 của bài báo. Từng seed đơn lẻ đều <em>không</em> đạt
+chuẩn này (cận dưới CI 0,638–0,651) — thứ đóng cửa là ensemble 3 seed, không phải một seed may.</p>
+</blockquote>
+<p>Phát biểu đúng của claim: <em>"kể cả không có GPU, pipeline này vượt số công bố của bài báo với bằng
+chứng khoảng tin cậy"</em> — dưới giao thức CPU riêng, là claim <strong>độc lập</strong> với thang T4, không thay
+thế con số nào của mục 5.3 và không được ghép vào σ của bất kỳ bảng T4 nào.</p>
+<p>Cuối cùng, ranh giới sử dụng của từng con số — đây là bảng chống nhầm lẫn của cả mục:</p>
+<div class="wide tw"><table>
+<thead>
+<tr>
+<th>Con số</th>
+<th>Được phép dùng để</th>
+<th>KHÔNG được dùng để</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>B0</code> T4 0,6686 ± 0,0234</td>
+<td>tái lập 0,6504; mọi so sánh với <code>P2</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>B0</code> CPU 0,6919 ± 0,0060 (top3)</td>
+<td>chứng minh pipeline chạy đủ trên CPU; nguồn checkpoint demo</td>
+<td>gọi là "tái lập lần ba"; so trực tiếp với cột T4</td>
+</tr>
+<tr>
+<td>Hệ thống CPU 0,7059 [0,6560; 0,7447]</td>
+<td>claim "vượt 0,6504 không cần GPU"</td>
+<td>thay thế hay cộng gộp với claim <code>P2</code> 0,7441</td>
+</tr>
+<tr>
+<td><code>M0</code> CPU 0,6649 (top3) · 21,7 ms/ảnh</td>
+<td>cấu hình triển khai CPU thực tế</td>
+<td>baseline khoa học (1 seed)</td>
+</tr>
+</tbody>
+</table></div>
 
 <header class="sec" id="m8-i-chi-u-n-m-nguy-n-t-c-b-t-di-b-t-d-ch-c"><div class="s-meta"><span class="s-num">8</span></div><h2>Đối chiếu năm nguyên tắc bất di bất dịch của đề bài</h2></header>
 <div class="wide tw"><table>
@@ -2873,7 +2987,7 @@ nạp lại <code>.npz</code> rồi tính lại từ logits đã lưu. Một b�
 lại, và chính khẳng định đó là lý do việc huấn luyện lại ở vòng 2 đi lọt. Mức lệch đo được:
 <code>tables-offline/30_lap_lai_a100_vs_t4.txt</code>; câu chuyện đầy đủ: <code>../RESULTS.md</code> §10.9.</p>
 </blockquote>
-<p><strong>Ba thư mục nguồn, đừng lẫn:</strong></p>
+<p><strong>Bốn thư mục nguồn, đừng lẫn:</strong></p>
 <div class="wide tw"><table>
 <thead>
 <tr>
@@ -2888,11 +3002,15 @@ lại, và chính khẳng định đó là lý do việc huấn luyện lại �
 </tr>
 <tr>
 <td><code>tables-a100/</code>, <code>figures-a100/</code></td>
-<td>Vòng A100 27-08-2026. Là <strong>nguồn duy nhất</strong> còn lại của Gate 0a (mục 2.5), demo (mục 7.2) và bảng độ trễ A100</td>
+<td>Vòng A100 27-08-2026. Là <strong>nguồn duy nhất</strong> còn lại của Gate 0a (mục 2.5), log demo A100 (mục 7.2) và bảng độ trễ A100</td>
 </tr>
 <tr>
 <td><code>tables-offline/</code></td>
 <td>Tính lại 0 GPU — các bảng không ô nào của notebook in ra được. Bảng 30–34 từ <code>../ckpt-t4/*.npz</code>; bảng 35–36 đọc lại chính <code>tables/*.txt</code> và <strong>đối chiếu với bảng pivot mục 16 trước khi ghi</strong></td>
+</tr>
+<tr>
+<td><code>tables-cpu/</code>, <code>demo/</code></td>
+<td>Vòng <strong>CPU</strong> (mục 7.3 + bằng chứng demo 7.2): bảng 37–38 do <code>offline_tables_cpu.py</code> tính từ <code>../checkpoints_cpu/*.npz</code>; <code>demo/</code> giữ screenshot + log + script demo</td>
 </tr>
 </tbody>
 </table></div>
@@ -2994,7 +3112,11 @@ lại, và chính khẳng định đó là lý do việc huấn luyện lại �
 </tr>
 <tr>
 <td>7.2 demo</td>
-<td><code>tables-a100/29_demo_gradio.txt</code></td>
+<td><code>tables-a100/29_demo_gradio.txt</code>, <code>demo/29b_demo_gradio_cpu.{png,txt}</code></td>
+</tr>
+<tr>
+<td><strong>7.3 baseline GPU vs CPU</strong></td>
+<td><strong><code>tables-cpu/37_b0_cpu_3seed.txt</code>, <code>tables-cpu/38_b0_cpu_zero_epoch.txt</code></strong></td>
 </tr>
 <tr>
 <td>Ablation nhóm A (1 seed, giao thức cũ)</td>

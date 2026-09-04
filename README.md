@@ -573,30 +573,40 @@ final-project/
 ├── RESULTS.md                         # measured numbers only (the ablation + session log)
 ├── build_notebook.py                  # SOURCE OF THE NOTEBOOK - edit here, never the .ipynb
 ├── rebuild_notebook.py                # RUN THIS instead: rebuild + keep the real run's outputs
+├── build_cpu_notebook.py              # source of the CPU-only notebook (same rule: never hand-edit .ipynb)
+├── train_cpu_seeds.py                 # extra seeds for B0 on CPU, notebook-identical protocol (RESULTS.md §11)
 ├── test_notebook.py                   # 57 checks on the notebook's logic cells (no GPU, no data)
 ├── check_cells.py                     # syntax-checks every code cell of the .ipynb
 ├── requirements.txt
 ├── .gitignore                         # data/ checkpoints/ outputs/ ckpt-t4/ kout/ *.pt *.npz *.onnx
 ├── notebooks/
-│   └── final-gastrovision-classification.ipynb # GENERATED - do not hand-edit. Keeps the real run's outputs
+│   ├── final-gastrovision-classification.ipynb # GENERATED - do not hand-edit. Keeps the real run's outputs
+│   └── gastrovision_classification_cpu.ipynb   # GENERATED - the CPU-only run (full data, RESULTS.md §11)
 ├── report/               # THE REPORT + its only source of numbers
 │   ├── BAO_CAO.md        #   *** THE REPORT *** (Vietnamese, 10 sections = the brief's 70/30 framework)
 │   ├── bao_cao.html      #   generated: self-contained page (figures inlined), published as an Artifact
 │   ├── build_html.py     #   BAO_CAO.md -> bao_cao.html
-│   ├── check_numbers.py  #   cross-checks all 105 numbers in the report against tables/ - exits non-zero on drift
+│   ├── build_slides.py   #   the 14-slide defense deck -> slides.html (generated, don't hand-edit)
+│   ├── slides.html       #   generated deck: arrows to navigate, G = grid overview, Ctrl+P to print
+│   ├── check_numbers.py  #   cross-checks all 122 numbers in the report against sources - exits non-zero on drift
 │   ├── extract.py        #   re-runnable extractor: python report/extract.py (after every Kaggle/Colab session)
 │   ├── offline_tables.py #   the 7 tables no notebook cell can print (30-36) - 0 GPU, from ckpt-t4/*.npz
+│   ├── offline_tables_cpu.py # tables 37-38 (CPU round, 3 seeds) - 0 GPU, from checkpoints_cpu/*.npz
 │   ├── README.md         #   provenance, and which table feeds which report section
+│   ├── demo/             #   Gradio demo evidence: script + UI screenshot + log (run for real on CPU)
 │   ├── figures/          #   3 PNGs extracted from the executed notebook (T4 round)
 │   ├── figures-a100/     #   2 of those 3, from the A100 round before it was retrained
 │                       #   (06_eda was byte-identical - EDA does not depend on hardware - so it was dropped)
 │   ├── tables/           #   33 verbatim text outputs (T4 round, SESSION = 4)
 │   ├── tables-a100/      #   30 from the A100 round; 7 are live sources (11 / 28 / 29, and 12-15
 │                       #   feed table 30). The other 23 are archive only - do not quote them
+│   ├── tables-cpu/       #   2 recomputed at 0 GPU from the CPU round (37-38) - feeds BAO_CAO §7.3
 │   └── tables-offline/   #   7 recomputed at 0 GPU (30-36)
 ├── data/          # (gitignored) dataset - created at runtime
 ├── ckpt-t4/       # (gitignored) per-seed logits (.npz) pulled back from Kaggle - offline_tables.py reads these
 ├── ckpt-a100/     # (gitignored) the same, from the A100 round - plus the T1/T2/T3 logits ckpt-t4/ lacks
+├── checkpoints_cpu/ # (gitignored) weights + logits of the CPU round - offline_tables_cpu.py reads these
+├── outputs_cpu/   # figures of the CPU round (tracked: EDA + confusion matrix)
 ├── checkpoints/   # (gitignored, recreated on demand) weights + logits written by a *local* run
 └── outputs/       # (gitignored, recreated on demand) figures, CSV, ONNX written by a *local* run
 ```

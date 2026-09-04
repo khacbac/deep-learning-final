@@ -44,15 +44,17 @@ không so được trực tiếp — dùng bảng 30 để biết biên độ.
 
 ---
 
-## Ba thư mục, đừng lẫn
+## Năm thư mục, đừng lẫn
 
 | Thư mục | Là gì | Dùng khi nào |
 | --- | --- | --- |
 | `tables/`, `figures/` | Trích tự động từ notebook, **vòng T4 hiện tại** (`SESSION = 4`) | Mặc định — mọi số của báo cáo |
 | `tables-a100/`, `figures-a100/` | Bản lưu của vòng **A100 27-08-2026**, trước khi bị train lại | Đúng **2** bảng mà vòng T4 không có: `11` (Gate 0a) và `29` (demo Gradio) — cộng bản A100 của `28` (độ trễ ONNX) và `12`–`15` để đối chiếu ở bảng `30`. **7 file đó là tất cả những gì được dùng; 23 file còn lại chỉ là lưu trữ — đừng trích.** `figures-a100/` còn **2** hình: `06_eda.png` trùng byte với bản `figures/` (EDA không phụ thuộc phần cứng) nên đã xoá 01-09-2026 |
 | `tables-offline/` | Tính lại **0 GPU** bằng `offline_tables.py` — bảng `30`–`34` từ `../ckpt-t4/*.npz`, bảng `35`–`36` đọc lại chính `tables/*.txt` | **7 bảng** (`30`–`36`) mà không ô nào của notebook in ra được: xem bảng liệt kê ở cuối file |
+| `tables-cpu/` | Tính lại **0 GPU** bằng `offline_tables_cpu.py` từ `../checkpoints_cpu/*.npz` — vòng **CPU 3 seed** (04-09-2026, `train_cpu_seeds.py`) | Bảng `37` (3 seed + ensemble + CI, mục 7.3 và `../RESULTS.md` §11) và `38` (lever 0-epoch trên CPU) |
+| `demo/` | Bằng chứng demo Gradio chạy thật trên CPU (02-09-2026): screenshot UI + log + script tái chạy | Mục 7.2 của báo cáo |
 
-`extract.py` **xoá sạch** `tables/` + `figures/` mỗi lần chạy, và chỉ hai thư mục đó — ba thư mục
+`extract.py` **xoá sạch** `tables/` + `figures/` mỗi lần chạy, và chỉ hai thư mục đó — các thư mục
 kia nó không chạm tới.
 
 ## ⚠️ KHÔNG lấy số từ `../outputs/` và `../checkpoints/`

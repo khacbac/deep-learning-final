@@ -1435,48 +1435,54 @@ thuần lý thuyết. Nó **không** chứng minh `P4` sẽ dương — IN-22k k
 
 ---
 
-## 11. CPU full-data run — notebook CPU-only trên toàn bộ 7.930 ảnh (2026-08-29, khôi phục 2026-09-02)
+## 11. CPU full-data run — notebook CPU-only trên toàn bộ 7.930 ảnh (2026-08-29 → 2026-09-04)
 
 > Mục này từng là §10 của commit `52c191a` và bị rơi mất khi RESULTS.md được viết lại toàn bộ ở
-> `e773138` (dán đè từ bản trên máy khác — không cố ý). Khôi phục lại đây, cập nhật phần so sánh
-> theo bộ số T4 hiện hành, và bổ sung §11.2 (bằng chứng demo, 02-09-2026).
+> `e773138` (dán đè từ bản trên máy khác — không cố ý). Khôi phục 02-09; **cập nhật 04-09** sau khi
+> vòng CPU được nâng lên **3 seed** và đo xong các lever 0-epoch. Mọi con số ở đây do
+> `report/offline_tables_cpu.py` tính lại từ `.npz` và ghi ra `report/tables-cpu/37,38` — không gõ tay.
 
 `gastrovision_classification_cpu.ipynb` (sinh bởi `build_cpu_notebook.py`) — bản **CPU-only**:
-ẩn CUDA trước khi `import torch`, chặn mọi lời gọi `.cuda()`, fp32 thuần không AMP. Đã chạy trọn
-vẹn hai lần bằng `nbconvert` trên máy cá nhân (12 threads, torch 2.13.0+cpu, Python 3.14), hồ sơ
+ẩn CUDA trước khi `import torch`, chặn mọi lời gọi `.cuda()`, fp32 thuần không AMP. Hồ sơ
 **`cpu-full`**: toàn bộ 7.930 ảnh, đúng split `SPLIT_SEED = 42` (4.758 / 1.586 / 1.586 — trùng mọi
-vòng GPU), **15 epoch, batch 16, chỉ seed 0**. Dữ liệu tải mới từ OSF (Google Drive chặn `gdown`),
-MD5 khớp bản công bố (`90aabf906e153f7bac4548765402d4c7`), quét lớp tái lập đúng 27 thư mục /
-8.000 ảnh → 22 lớp / 7.930.
+vòng GPU), **15 epoch, batch 16**. Seed 0 chạy trong notebook (nbconvert, 2026-08-29); seed 1–2
+chạy đêm 04-09 bằng `train_cpu_seeds.py` — script tách từ notebook, **giữ nguyên từng chi tiết
+giao thức** (cùng transform, loader gieo hạt, Tracker top-3, AdamW 1e-4). ~230 phút/seed trên 12
+threads. Dữ liệu tải từ OSF, MD5 khớp bản công bố (`90aabf906e153f7bac4548765402d4c7`).
 
-### 11.1 macro-F1 test, seed 0, cả 6 quy tắc
+### 11.1 macro-F1 test — 3 seed, cả 6 quy tắc (nguồn: `tables-cpu/37`)
 
-| Cấu hình | best | smooth | top3 | best_tta | smooth_tta | top3_tta |
-|---|---|---|---|---|---|---|
-| `B0_densenet121_cpu` @224 | **0.6844** | 0.6665 | **0.6969** | 0.6764 | 0.6689 | 0.6883 |
-| `M0_mobilenetv3_cpu` @224 | 0.6191 | 0.6191 | 0.6649 | 0.6434 | 0.6434 | 0.6737 |
+| `B0_densenet121_cpu` @224 | seed 0 | seed 1 | seed 2 | mean ± σ |
+|---|---|---|---|---|
+| best | 0.6844 | 0.6480 | 0.6803 | 0.6709 ± 0.0163 |
+| smooth | 0.6665 | 0.6535 | 0.6783 | 0.6661 ± 0.0101 |
+| **top3** | 0.6969 | 0.6834 | 0.6953 | **0.6919 ± 0.0060** |
+| top3_tta | 0.6883 | 0.6809 | 0.6999 | 0.6897 ± 0.0078 |
 
-Bootstrap CI95 (1.000 lần lấy lại mẫu, logits seed 0) cho DenseNet-121: `best` **[0.6343, 0.7204]**,
-`top3` **[0.6495, 0.7328]**. Accuracy (micro-F1) của `M0` = 0.789.
+`M0_mobilenetv3_cpu` @224 (1 seed): best 0.6191 · top3 0.6649 · top3_tta 0.6737; accuracy 0.789.
+
+Hai mẫu hình lặp lại từ vòng GPU, nay trên **phần cứng thứ ba**: (a) `top3` bền nhất — σ 0.0060 so
+với 0.0163 của `best` (gấp 2,7×), đúng thứ hạng của bảng 16 vòng T4 và bảng 30 A100↔T4; (b) cả 3
+seed đều lập đỉnh val quanh epoch 7–8 (riêng seed 2 có đỉnh muộn 0.6702 ở epoch 14 — đúng loại
+nhiễu chọn-checkpoint mà `top3` sinh ra để hấp thụ).
 
 ### So với các mốc khác — đọc kèm cảnh báo giao thức
 
 | Lần chạy | Giao thức | best | top3 |
 |---|---|---|---|
 | Paper DenseNet-121 (Table 2) | 150 ep, batch 32, TITAN Xp, 1 run | 0.6504 | — |
-| `B0` T4 (§10.9, bộ số hiện hành) | 30 ep, batch 32, fp16, 3 seed | 0.6686 ± 0.0234 | 0.6780 |
-| `B0_densenet121_cpu` | **15 ep, batch 16**, fp32 CPU, 1 seed | 0.6844 | 0.6969 |
+| `B0` T4 (§10.9, bộ số hiện hành) | 30 ep, batch 32, fp16, 3 seed | 0.6686 ± 0.0234 | 0.6780 ± 0.0073 |
+| `B0_densenet121_cpu` | **15 ep, batch 16**, fp32 CPU, 3 seed | 0.6709 ± 0.0163 | 0.6919 ± 0.0060 |
 | `P2` T4 (hệ thống đề xuất) | 80 ep công thức hiện đại, 3 seed | — | 0.7298 (hệ thống đầy đủ 0.7441) |
 
-**Caveat bắt buộc khi trích 0.6844:** (1) **không cùng giao thức** — batch 16 ≠ 32 đổi cả LR hiệu
-dụng lẫn số bước cập nhật, nên đây là *phép đo tính khả thi trên CPU*, không phải một lần tái lập
-nữa; (2) **1 seed** — σ của `B0` trên T4 là ±0.0234, và Gate 0a đã chứng minh đổi phần cứng = đổi
-mô hình, nên 0.6844 nằm gọn trong vùng "seed may mắn + giao thức khác"; (3) val đạt đỉnh **epoch
-7/15** (0.6806) — 15 epoch không phải ràng buộc; (4) điều nó *gợi ý* (chưa chứng minh): batch nhỏ
-đáng một dòng ablation có kiểm soát batch 16 vs 32 trên GPU. **Kết luận nhất quán với §10:** dưới
-`top3_tta`, MobileNetV3 (4,2M tham số) chỉ thua DenseNet 0.015 (0.6737 vs 0.6883, CI chồng lấn
-mạnh) ở **3,3× nhanh hơn** — đòn bẩy *cách đo* bù gần hết khoảng cách kiến trúc, đúng câu chuyện
-của báo cáo.
+**Caveat bắt buộc:** (1) **không cùng giao thức** — batch 16 ≠ 32 đổi cả LR hiệu dụng lẫn số bước
+cập nhật (tổng số bước cập nhật hai bên xấp xỉ nhau: ~4.460), nên các cột CPU **không được so trực
+tiếp** với 0.6504 hay với cột T4 như thể cùng một phép đo; (2) Gate 0a: đổi phần cứng = đổi mô
+hình; (3) dưới `best`, mean CPU 0.6709 với σ 0.0163 nằm chồng hẳn lên 0.6686 ± 0.0234 của T4 —
+**không có bằng chứng CPU "tốt hơn"**; khoảng cách +0.0139 ở `top3` (1,5σ gộp) là "giao thức khác +
+nhiễu", chưa phải hiệu ứng; (4) điều đáng thử tiếp (chưa chứng minh): ablation batch 16 vs 32 có
+kiểm soát trên GPU. **Kết luận nhất quán với §10:** dưới `top3_tta`, MobileNetV3 (4,2M tham số)
+chỉ thua DenseNet 0.016 ở **3,3× nhanh hơn** — đòn bẩy *cách đo* bù gần hết khoảng cách kiến trúc.
 
 Chi phí & số triển khai CPU (12 threads, fp32): DenseNet-121 train 225 phút (~810 s/epoch), suy
 luận **72.1 ms/ảnh** @ batch 1; MobileNetV3-L train 82 phút, **21.7 ms/ảnh**, 16.9 MB. Artifact:
@@ -1493,3 +1499,33 @@ Khoảng trống "không có screenshot demo" (ghi ở cuối §10 và BAO_CAO m
 * Bằng chứng: `report/demo/29b_demo_gradio_cpu.png` (screenshot UI đầy đủ) + `29b_demo_gradio_cpu.txt` (log).
 * Vẫn đúng hai caveat của BAO_CAO 7.2: demo là **1 checkpoint + TTA**, yếu hơn hệ thống được báo
   cáo, và checkpoint là của vòng CPU chứ **không phải** `P2` của vòng T4 — hai điều đó không đổi.
+
+### 11.3 Lever 0-epoch trên B0 CPU — hiệu chỉnh logit phẳng, tái xác nhận phát hiện 3 (nguồn: `tables-cpu/38`)
+
+Dò τ trên VAL (0.0 → 1.0): τ* = **0.1**, val chỉ nhích 0.6806 → 0.6831; áp lên test thì `top3`
+**giảm** 0.6969 → 0.6882, `top3_tta` nhích 0.6883 → 0.6939. Tức là **hiệu chỉnh logit gần như vô
+hiệu trên backbone không có công thức hiện đại** — đúng điều §10.9 (phát hiện 3) đã đo trên `P1`
+của vòng GPU, nay lặp lại độc lập trên phần cứng thứ ba. Lever này chỉ trả tiền khi đứng trên `P2`.
+Ensemble 2 kiến trúc (B0+M0, exploratory) cũng chỉ +0.0023 — trong nhiễu, không dùng để tuyên bố.
+
+### 11.4 Vượt baseline công bố bằng máy không GPU — claim riêng, đúng chuẩn CI (nguồn: `tables-cpu/37`)
+
+Hệ thống **tuyên bố trước khi đo** (khớp định nghĩa hệ thống của báo cáo, trừ công thức huấn luyện):
+*DenseNet-121, quy tắc `top3`, ensemble xác suất của 3 seed.*
+
+> **macro-F1 = 0.7059, bootstrap CI95 [0.6560; 0.7447] — không chứa 0.6504.**
+> micro-F1 (accuracy) = **0.8386**, so với 0.8203 của bài báo.
+
+Ba điều giữ cho claim này đứng vững và trung thực:
+
+1. **Đạt đúng tiêu chuẩn khắt khe nhất của báo cáo** (khoảng tin cậy loại baseline, ≥3 seed) — cùng
+   tiêu chuẩn mà mục 5.3 áp cho `P2`. Từng seed đơn lẻ đều **không** đạt (cận dưới CI 0.638–0.651);
+   thứ đóng cửa là ensemble 3 seed, không phải một seed may.
+2. **Đây là claim dưới giao thức CPU riêng** (batch 16, 15 epoch, fp32, 12 threads) — kiểu so
+   "hệ-thống-với-số-công-bố" giống cách `P2` được so; **không ghép vào thang T4** (Gate 0a) và không
+   thay thế con số nào của vòng T4. Phát biểu đúng: *"kể cả không có GPU, pipeline này vượt số công
+   bố của bài báo với bằng chứng CI"* — không phải *"CPU tốt hơn GPU"*.
+3. **Chi phí:** 3 seed × ~230 phút CPU (chạy đêm, 0 đồng) + mọi phân tích 0-epoch từ logits đã lưu.
+   Tái lập: `python train_cpu_seeds.py` rồi `python report/offline_tables_cpu.py`.
+
+Vị trí trong báo cáo: BAO_CAO mục **7.3** (bảng GPU-vs-CPU + claim + giới hạn của từng con số).

@@ -149,9 +149,24 @@ CHECKS = [
     ("8.74", "tables/28_trien_khai_onnx_do_tre.txt", "CoAtNet@288 ms @ batch 32"),
     ("114.8", "tables/28_trien_khai_onnx_do_tre.txt", "kich thuoc ONNX cua P2"),
     # --- muc 7.2: bang chung demo chay that tren CPU (02-09-2026) ---
-    ("0.6844", None, "B0 CPU full-data, quy tac 'best' -- nguon: ../RESULTS.md muc 11"),
-    ("0.789", None, "accuracy vong CPU full-data -- nguon: ../RESULTS.md muc 11"),
+    ("0.6844", "tables-cpu/37_b0_cpu_3seed.txt", "B0 CPU seed 0, quy tac 'best'"),
+    ("0.789", None, "accuracy vong CPU (M0) -- nguon: ../RESULTS.md muc 11"),
     ("0.961", "demo/29b_demo_gradio_cpu.txt", "top-1 cua demo CPU (Accessory tools)"),
+    # --- muc 7.3: baseline GPU vs CPU (04-09-2026, vong CPU 3 seed) ---
+    ("0.6709", "tables-cpu/37_b0_cpu_3seed.txt", "B0 CPU 3 seed, mean duoi 'best'"),
+    ("0.0163", "tables-cpu/37_b0_cpu_3seed.txt", "sigma cua B0 CPU duoi 'best'"),
+    ("0.6919", "tables-cpu/37_b0_cpu_3seed.txt", "B0 CPU 3 seed, mean duoi 'top3'"),
+    ("0.0060", "tables-cpu/37_b0_cpu_3seed.txt", "sigma cua B0 CPU duoi 'top3' -- ben nhat"),
+    ("0.0073", "tables/21_bang_tong_ket.txt", "sigma cua B0 T4 duoi 'top3'"),
+    ("0.7059", "tables-cpu/37_b0_cpu_3seed.txt", "he thong CPU: ensemble 3 seed top3"),
+    ("0.6560", "tables-cpu/37_b0_cpu_3seed.txt", "CI duoi cua he thong CPU -- khong chua 0,6504"),
+    ("0.7447", "tables-cpu/37_b0_cpu_3seed.txt", "CI tren cua he thong CPU"),
+    ("0.8386", "tables-cpu/37_b0_cpu_3seed.txt", "micro-F1 cua he thong CPU"),
+    ("0.6649", "tables-cpu/37_b0_cpu_3seed.txt", "M0 MobileNetV3 CPU duoi 'top3'"),
+    ("0.6191", "tables-cpu/37_b0_cpu_3seed.txt", "M0 MobileNetV3 CPU duoi 'best'"),
+    ("0.6599", "tables/16_bang_6_quy_tac.txt", "S0 T4 duoi 'best' (dong doi chieu 7.3)"),
+    ("21.7", None, "MobileNetV3 ms/anh CPU batch 1 -- nguon: ../RESULTS.md muc 11"),
+    ("72.1", None, "DenseNet-121 ms/anh CPU batch 1 -- nguon: ../RESULTS.md muc 11"),
 ]
 
 

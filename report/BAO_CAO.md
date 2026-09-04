@@ -196,6 +196,11 @@ DenseNet-121 đạt đỉnh val ở **epoch 6/30** (mục 5.4), nên 120 epoch c
 giúp nó. Giao thức 30-epoch là **công bằng với baseline**. Nó chỉ **bảo thủ với công thức hiện đại**,
 và đó chính là lý do `P2` được cho 80 epoch — một chênh lệch được nêu rõ ở mục 3.2 chứ không làm mờ.
 
+> ⚠️ **Cùng baseline này còn được đo lần nữa trên CPU, và con số ở đó cao hơn — đừng để nó gây
+> nhầm.** Vòng CPU (mục 7.3) chạy DenseNet-121 dưới một giao thức **khác** (batch 16, 15 epoch,
+> fp32) và cho 0,6709 ± 0,0163 dưới `best` — chồng hẳn lên 0,6686 ± 0,0234 của dòng trên. Hai cột số
+> đó **không so trực tiếp được với nhau**; mục 7.3 nói rõ mỗi con số được phép dùng để kết luận gì.
+
 ---
 
 ## 2 · Phân tích dữ liệu (EDA) — **20%**
@@ -1274,6 +1279,56 @@ demo: da nap P1_coatnet0_288 seed 0 @ 288px tren cuda
 > thái (~1,3 GB) và huấn luyện lại; các lượt chạy cũ không thể bù ngược. Con số của **sản phẩm demo**
 > vì vậy thấp hơn con số của **hệ thống được báo cáo**, và hai con số đó không được lẫn.
 
+### 7.3 Baseline trên GPU và trên CPU — hai phép đo, hai giới hạn
+
+Hai baseline chính thức của báo cáo (`B0` DenseNet-121, `S0` Swin-T) được đo trên **T4** — đó là
+các con số của mục 1.4 và 5.3. Một **vòng CPU độc lập** (notebook
+`gastrovision_classification_cpu.ipynb` + `train_cpu_seeds.py`, máy 12 threads, fp32) đo lại
+DenseNet-121 với **3 seed** và thêm MobileNetV3-L làm mô hình triển khai; **Swin-T chưa được đo trên
+CPU** — một khoảng trống đã biết, không phải một phép đo bị giấu. Nguồn số:
+`tables-cpu/37`–`38` (sinh bởi `report/offline_tables_cpu.py`, 0 GPU).
+
+| Phép đo | Giao thức | best | top3 | ms/ảnh @ b1 |
+|---|---|---|---|---|
+| Bài báo, DenseNet-121 | 150 ep · batch 32 · TITAN Xp · 1 run | 0,6504 | — | — |
+| `B0` T4 *(chính thức)* | 30 ep · batch 32 · fp16 · 3 seed | 0,6686 ± 0,0234 | 0,6780 ± 0,0073 | 15,4 (ONNX T4) |
+| `B0` CPU | **15 ep · batch 16** · fp32 · 3 seed | 0,6709 ± 0,0163 | **0,6919 ± 0,0060** | 72,1 (CPU) |
+| `M0` MobileNetV3-L CPU | như trên, 1 seed | 0,6191 | 0,6649 | **21,7** (CPU) |
+| `S0` Swin-T | *chưa đo trên CPU* | 0,6599 (T4) | 0,6813 (T4) | 19,5 (ONNX T4) |
+
+**Vì sao cột CPU cao hơn cột T4 — và vì sao điều đó *không* nói lên gì về phần cứng.** Dưới quy tắc
+`best`, hai phép đo chồng hẳn lên nhau (0,6709 ± 0,0163 so với 0,6686 ± 0,0234). Dưới `top3`, chênh
++0,0139 ≈ 1,5σ gộp — nhưng batch 16 so với 32 đổi cả LR hiệu dụng lẫn nhịp cập nhật (tổng số bước
+xấp xỉ nhau: ~4.460), fp32 so với fp16 đổi quỹ đạo huấn luyện, và Gate 0a (mục 2.5) đã chứng minh
+đổi phần cứng = đổi mô hình ngay cả khi mọi thứ khác giữ nguyên. Chênh lệch này là **"giao thức
+khác + nhiễu"**, chưa phải một hiệu ứng; nếu muốn biến nó thành hiệu ứng thì phép đo đúng là
+ablation batch 16 vs 32 **trên cùng GPU** — một hướng phát triển, không phải một kết luận sẵn có.
+
+Vòng CPU cũng **tái xác nhận độc lập hai phát hiện phương pháp** của báo cáo, trên phần cứng thứ
+ba: (a) `top3` bền nhất — σ = 0,0060, so với 0,0163 của `best`; (b) **hiệu chỉnh logit phẳng khi
+không có công thức hiện đại** — τ* dò trên val chỉ còn 0,1 và `top3` test *giảm* khi áp (bảng 38),
+đúng như phát hiện 3 của `P1` (mục 3.7): lever này chỉ trả tiền khi đứng trên `P2`.
+
+**Và một claim riêng của vòng CPU, đúng chuẩn CI của mục 1.4** — hệ thống tuyên bố trước khi đo
+(DenseNet-121 · quy tắc `top3` · ensemble xác suất 3 seed):
+
+> **macro-F1 = 0,7059, bootstrap CI 95% [0,6560; 0,7447] — không chứa 0,6504.**
+> micro-F1 (accuracy) = **0,8386** so với 0,8203 của bài báo. Từng seed đơn lẻ đều *không* đạt
+> chuẩn này (cận dưới CI 0,638–0,651) — thứ đóng cửa là ensemble 3 seed, không phải một seed may.
+
+Phát biểu đúng của claim: *"kể cả không có GPU, pipeline này vượt số công bố của bài báo với bằng
+chứng khoảng tin cậy"* — dưới giao thức CPU riêng, là claim **độc lập** với thang T4, không thay
+thế con số nào của mục 5.3 và không được ghép vào σ của bất kỳ bảng T4 nào.
+
+Cuối cùng, ranh giới sử dụng của từng con số — đây là bảng chống nhầm lẫn của cả mục:
+
+| Con số | Được phép dùng để | KHÔNG được dùng để |
+|---|---|---|
+| `B0` T4 0,6686 ± 0,0234 | tái lập 0,6504; mọi so sánh với `P2` | — |
+| `B0` CPU 0,6919 ± 0,0060 (top3) | chứng minh pipeline chạy đủ trên CPU; nguồn checkpoint demo | gọi là "tái lập lần ba"; so trực tiếp với cột T4 |
+| Hệ thống CPU 0,7059 [0,6560; 0,7447] | claim "vượt 0,6504 không cần GPU" | thay thế hay cộng gộp với claim `P2` 0,7441 |
+| `M0` CPU 0,6649 (top3) · 21,7 ms/ảnh | cấu hình triển khai CPU thực tế | baseline khoa học (1 seed) |
+
 ---
 
 ## 8 · Đối chiếu năm nguyên tắc bất di bất dịch của đề bài
@@ -1452,13 +1507,14 @@ ablation `A1`/`A2`; **80 epoch** cho `P2`/`P2b`/`P2c` với công thức hiện 
 > lại, và chính khẳng định đó là lý do việc huấn luyện lại ở vòng 2 đi lọt. Mức lệch đo được:
 > `tables-offline/30_lap_lai_a100_vs_t4.txt`; câu chuyện đầy đủ: `../RESULTS.md` §10.9.
 
-**Ba thư mục nguồn, đừng lẫn:**
+**Bốn thư mục nguồn, đừng lẫn:**
 
 | Thư mục | Là gì |
 |---|---|
 | `tables/`, `figures/` | Vòng T4 hiện tại — mặc định cho mọi con số |
-| `tables-a100/`, `figures-a100/` | Vòng A100 27-08-2026. Là **nguồn duy nhất** còn lại của Gate 0a (mục 2.5), demo (mục 7.2) và bảng độ trễ A100 |
+| `tables-a100/`, `figures-a100/` | Vòng A100 27-08-2026. Là **nguồn duy nhất** còn lại của Gate 0a (mục 2.5), log demo A100 (mục 7.2) và bảng độ trễ A100 |
 | `tables-offline/` | Tính lại 0 GPU — các bảng không ô nào của notebook in ra được. Bảng 30–34 từ `../ckpt-t4/*.npz`; bảng 35–36 đọc lại chính `tables/*.txt` và **đối chiếu với bảng pivot mục 16 trước khi ghi** |
+| `tables-cpu/`, `demo/` | Vòng **CPU** (mục 7.3 + bằng chứng demo 7.2): bảng 37–38 do `offline_tables_cpu.py` tính từ `../checkpoints_cpu/*.npz`; `demo/` giữ screenshot + log + script demo |
 
 | Mục của báo cáo | File nguồn trong `report/` |
 |---|---|
@@ -1484,7 +1540,8 @@ ablation `A1`/`A2`; **80 epoch** cho `P2`/`P2b`/`P2c` với công thức hiện 
 | 5.5 ensemble | `tables/20_donbay_ensemble_kientruc.txt`, `tables-offline/31_*` |
 | 6 transfer learning | `tables/27_transfer_learning.txt`, `tables/26_transfer_learning_log.txt` |
 | 7.1 ONNX & độ trễ | `tables/28_trien_khai_onnx_do_tre.txt` (T4), `tables-a100/28_*` (A100) |
-| 7.2 demo | `tables-a100/29_demo_gradio.txt` |
+| 7.2 demo | `tables-a100/29_demo_gradio.txt`, `demo/29b_demo_gradio_cpu.{png,txt}` |
+| **7.3 baseline GPU vs CPU** | **`tables-cpu/37_b0_cpu_3seed.txt`, `tables-cpu/38_b0_cpu_zero_epoch.txt`** |
 | Ablation nhóm A (1 seed, giao thức cũ) | `../RESULTS.md` §2, §6 |
 
 Notebook: `../notebooks/final-gastrovision-classification.ipynb` (sinh ra từ `../build_notebook.py` — đừng

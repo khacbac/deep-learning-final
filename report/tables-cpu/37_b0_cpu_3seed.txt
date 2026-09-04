@@ -1,0 +1,29 @@
+B0_densenet121_cpu — 3 seed, giao thuc CPU (15 epoch, batch 16, fp32, 12 threads)
+Baseline cong bo (DenseNet-121, arXiv 2307.08140): 0.6504
+
+quy_tac        seed0   seed1   seed2    mean   sigma
+best          0.6844  0.6480  0.6803  0.6709  0.0163
+best_tta      0.6764  0.6590  0.6909  0.6755  0.0130
+smooth        0.6665  0.6535  0.6783  0.6661  0.0101
+smooth_tta    0.6689  0.6586  0.6909  0.6728  0.0135
+top3          0.6969  0.6834  0.6953  0.6919  0.0060
+top3_tta      0.6883  0.6809  0.6999  0.6897  0.0078
+
+mean top3 - baseline = +0.0415  (6.9 sigma)
+
+HE THONG (tuyen bo truoc): ensemble 3 seed cua top3 (trung binh xac suat)
+  macro-F1 = 0.7059   CI95 [0.6560, 0.7447]   -> KHONG chua 0.6504
+  micro-F1 (accuracy) = 0.8386   (bai bao: 0.8203)
+
+Doi chieu (exploratory):
+  ensemble 3 seed top3_tta  : 0.6978  CI95 [0.6511, 0.7337]
+  ensemble 3 seed best      : 0.7078  CI95 [0.6570, 0.7431]
+  seed 0 top3 don le        : 0.6969  CI95 [0.6505, 0.7382]
+  seed 1 top3 don le        : 0.6834  CI95 [0.6381, 0.7171]
+  seed 2 top3 don le        : 0.6953  CI95 [0.6487, 0.7329]
+
+Doi chieu T4 (tu tables/21_bang_tong_ket.txt): B0 top3 = 0.6780 +/- 0.0073, best = 0.6686 +/- 0.0234
+MobileNetV3-L CPU seed 0 (tu M0_mobilenetv3_cpu_seed0.npz):
+  best      = 0.6191
+  top3      = 0.6649
+  top3_tta  = 0.6737
