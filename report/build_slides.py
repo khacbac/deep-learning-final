@@ -35,19 +35,14 @@ def b64png(rel):
         return "data:image/png;base64," + base64.b64encode(f.read()).decode()
 
 
-def sample_jpg(class_dir, idx=2, size=360, q=72):
-    """Lay 1 anh that tu dataset: crop vuong giua, thu nho, nen JPEG -> data URI."""
-    folder = None
+def _class_folder(class_dir):
     for r, dirs, _ in os.walk(DATA):
-        for d in dirs:
-            if d == class_dir:
-                folder = Path(r) / d
-                break
-        if folder:
-            break
-    assert folder is not None, f"khong thay thu muc lop '{class_dir}' duoi data/"
-    files = sorted(p for p in folder.iterdir() if p.suffix.lower() in (".jpg", ".jpeg", ".png"))
-    img = Image.open(files[min(idx, len(files) - 1)]).convert("RGB")
+        if class_dir in dirs:
+            return Path(r) / class_dir
+    raise AssertionError(f"khong thay thu muc lop '{class_dir}' duoi data/")
+
+
+def _encode(img, size, q):
     w, h = img.size
     s = min(w, h)
     img = img.crop(((w - s) // 2, (h - s) // 2, (w + s) // 2, (h + s) // 2)).resize((size, size))
@@ -56,18 +51,38 @@ def sample_jpg(class_dir, idx=2, size=360, q=72):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
+def sample_jpg(class_dir, idx=2, size=360, q=72):
+    """Lay 1 anh that tu dataset: crop vuong giua, thu nho, nen JPEG -> data URI."""
+    folder = _class_folder(class_dir)
+    files = sorted(p for p in folder.iterdir() if p.suffix.lower() in (".jpg", ".jpeg", ".png"))
+    return _encode(Image.open(files[min(idx, len(files) - 1)]).convert("RGB"), size, q)
+
+
+def exact_jpg(class_dir, fname, size=300, q=72):
+    """Lay DUNG mot file theo ten — dung cho bang chung tu bang audit (tables/08)."""
+    return _encode(Image.open(_class_folder(class_dir) / fname).convert("RGB"), size, q)
+
+
 IMG_EDA = b64png("figures/06_eda.png")
 IMG_PERCLASS = b64png("figures/18_per_class_va_confusion.png")
 IMG_DEMO = b64png("demo/29b_demo_gradio_cpu.png")
 
+IMG_NORMAL_LB = sample_jpg("Normal mucosa and vascular pattern in the large bowel", idx=12)
 SAMPLES = [
     ("Polyp đại tràng", sample_jpg("Colon polyps")),
     ("Ung thư đại trực tràng", sample_jpg("Colorectal cancer")),
-    ("Niêm mạc bình thường", sample_jpg("Normal mucosa and vascular pattern in the large bowel")),
+    ("Niêm mạc bình thường", IMG_NORMAL_LB),
     ("Viêm thực quản", sample_jpg("Esophagitis")),
     ("Dụng cụ can thiệp", sample_jpg("Accessory tools")),
 ]
 BG_POLYP = sample_jpg("Colon polyps", idx=5, size=340, q=70)
+
+# Bang chung du lieu (ten file lay tu report/tables/08_audit_gan_trung.txt):
+# cap anh GIONG HET NHAU (cosine = 1.0000) nhung mang 2 nhan khac nhau.
+IMG_MIS_A = exact_jpg("Esophagitis", "N2DaTmFs.jpg")
+IMG_MIS_B = exact_jpg("Normal esophagus", "WdSYgDiw.jpg")
+# cap DE NHAM: hai nhom khac nhau nhung nhin rat giong nhau.
+IMG_CECUM = sample_jpg("Cecum", size=300)
 
 CSS = """
 :root{
@@ -125,9 +140,13 @@ figcaption{font-size:15px;color:var(--muted);line-height:1.45}
 .titleslide{justify-content:center;gap:18px}
 .titleslide .who{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--muted);letter-spacing:.05em}
 .strip{display:flex;gap:14px;margin:10px 0}
-.strip figure{flex:1}
-.strip img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line)}
+.strip figure{flex:1;min-width:0}
+.strip img{width:100%;height:168px;object-fit:cover;border:1px solid var(--line)}
 .strip figcaption{text-align:center;font-size:14px}
+.pair{display:flex;gap:10px}
+.pair figure{flex:1;min-width:0}
+.pair img{width:100%;height:150px;object-fit:cover;border:1px solid var(--line)}
+.pair figcaption{text-align:center;font-size:13.5px}
 kbd{font-family:'IBM Plex Mono',monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 6px;font-size:12px}
 #hint{position:fixed;right:16px;bottom:12px;color:#9FB0AA;font-size:12px;font-family:'IBM Plex Mono',monospace;opacity:.85}
 body.grid #stage{position:static;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px;background:var(--ink);height:auto}
@@ -281,8 +300,6 @@ def waterfall_svg():
     for t in (0.65, 0.70, 0.75):
         p.append(f'<line x1="42" y1="{Y(t):.0f}" x2="1110" y2="{Y(t):.0f}" stroke="#D7DEDA" stroke-width="1"/>')
         p.append(f'<text x="36" y="{Y(t) + 5:.0f}" font-size="14" fill="#56635E" text-anchor="end" font-family="IBM Plex Mono,monospace">{vn(t, 2)}</text>')
-    p.append(f'<line x1="42" y1="{Y(0.6504):.0f}" x2="1110" y2="{Y(0.6504):.0f}" stroke="#A8402F" stroke-width="2" stroke-dasharray="7 5"/>')
-    p.append(f'<text x="52" y="{Y(0.6504) + 20:.0f}" font-size="14" fill="#A8402F" text-anchor="start" font-weight="600" font-family="IBM Plex Mono,monospace">mốc phải vượt: 0,6504</text>')
     cum, prev_top = 0.6686, None
     for i, (name, sub, d, absv, kind) in enumerate(steps):
         x = x0 + i * (colw + gap)
@@ -305,6 +322,9 @@ def waterfall_svg():
         prev_top = Y(cum)
         p.append(f'<text x="{x + colw / 2:.0f}" y="{top + phh + 26}" font-size="15" fill="#1C2321" text-anchor="middle" font-family="Be Vietnam Pro,sans-serif" font-weight="600">{name}</text>')
         p.append(f'<text x="{x + colw / 2:.0f}" y="{top + phh + 46}" font-size="13" fill="#56635E" text-anchor="middle" font-family="Be Vietnam Pro,sans-serif">{sub}</text>')
+    # vach moc ve SAU cac cot de khong bi che; nhan dat o khoang trong giua bieu do
+    p.append(f'<line x1="42" y1="{Y(0.6504):.0f}" x2="1110" y2="{Y(0.6504):.0f}" stroke="#A8402F" stroke-width="2" stroke-dasharray="7 5"/>')
+    p.append(f'<text x="530" y="{Y(0.6504) + 22:.0f}" font-size="14.5" fill="#A8402F" text-anchor="middle" font-weight="600" font-family="IBM Plex Mono,monospace">mốc phải vượt: 0,6504</text>')
     p.append("</svg>")
     return "".join(p)
 
@@ -351,36 +371,36 @@ S = []
 strip = "".join(f'<figure><img src="{u}" alt="{lb}"/><figcaption>{lb}</figcaption></figure>'
                 for lb, u in SAMPLES)
 S.append(slide(1, T, "Mở đầu · Đề tài", f"""
-<h1 style="font-size:44px">Nhận diện 22 loại hình ảnh nội soi tiêu hoá bằng học sâu</h1>
-<p class="lead">Máy nhìn một khung hình nội soi và trả lời: đây là <em>bộ phận bình thường</em> nào
-(dạ dày, thực quản, manh tràng…) hay <em>tổn thương</em> gì (polyp, ung thư đại trực tràng, viêm,
-Barrett…) — bước nền cho hệ thống hỗ trợ bác sĩ trong lúc soi.</p>
+<h1 style="font-size:42px">Nhận diện 22 loại hình ảnh nội soi tiêu hoá bằng học sâu</h1>
+<p class="lead">Máy nhìn một khung hình nội soi và gọi tên nó: bộ phận bình thường (dạ dày, thực quản,
+manh tràng…) hay tổn thương (polyp, ung thư, viêm…). Đây là bước nền cho hệ thống hỗ trợ bác sĩ
+trong lúc soi.</p>
 <div class="strip">{strip}</div>
-<div class="cols c2" style="flex:0">
+<div class="cols c2" style="flex:0 0 auto">
 <ul>
-<li><strong>Dữ liệu</strong>: GastroVision — 8.000 ảnh từ 2 bệnh viện Na Uy, dùng 22 nhóm / 7.930 ảnh.</li>
-<li><strong>Vì sao khó</strong>: các nhóm rất giống nhau bằng mắt; nhóm nhiều nhất 1.467 ảnh, ít nhất chỉ 29.</li>
+<li><strong>Dữ liệu</strong>: bộ GastroVision — 8.000 ảnh từ 2 bệnh viện Na Uy. Sau lọc còn 22 nhóm / 7.930 ảnh.</li>
+<li><strong>Vì sao khó</strong>: nhiều nhóm nhìn rất giống nhau. Nhóm đông nhất có 1.467 ảnh; nhóm ít nhất chỉ 29.</li>
 </ul>
 <ul>
-<li><strong>Nhiệm vụ đề bài</strong>: làm lại được kết quả đã công bố (mốc <span class="mono">0,6504</span>),
-rồi <strong>vượt nó một cách có bằng chứng</strong> — không phải một con số may mắn.</li>
+<li><strong>Nhiệm vụ</strong>: làm lại được mốc đã công bố (<span class="mono">0,6504</span>).
+Sau đó <strong>vượt mốc này một cách có bằng chứng</strong>.</li>
 </ul>
 </div>
-<p class="gloss"><b>macro-F1</b>: điểm trung bình của từng nhóm — nhóm hiếm được tính công bằng như nhóm lớn; thang 0→1, càng cao càng tốt. Ảnh trên là 5 mẫu thật lấy từ bộ dữ liệu.</p>"""))
+<p class="gloss"><b>macro-F1</b>: điểm trung bình của từng nhóm, nhóm hiếm được tính công bằng như nhóm lớn (thang 0→1). Năm ảnh trên là mẫu thật từ bộ dữ liệu.</p>"""))
 
 # ============ HOI 1 — PHUONG PHAP TIEP CAN ============ #
 S.append(slide(2, T, "Hồi 1 · Phương pháp tiếp cận", f"""
 <h2>Toàn cảnh giải pháp: một đường ống, mọi mô hình đi chung</h2>
 {pipeline_svg()}
 <ul style="margin-top:8px">
-<li><strong>Làm sạch trước khi học</strong>: quét ảnh trùng lặp và ảnh "lọt" giữa tập học – tập thi
-(nếu đề thi lẫn trong vở học, điểm sẽ ảo).</li>
-<li><strong>Học chuyển giao</strong>: bắt đầu từ mô hình đã học 1,3 triệu ảnh đời thường (ImageNet)
-rồi dạy tiếp bằng ảnh nội soi — thay vì học từ con số 0.</li>
-<li><strong>Một thước đo chung</strong>: mọi kiến trúc được chấm bằng đúng một bộ đề, một cách chấm —
-nhờ vậy so sánh mới công bằng.</li>
-<li><strong>Lưu lại mọi dự đoán</strong> (logits): các phân tích về sau chạy lại từ file đã lưu,
-<em>không tốn thêm giờ GPU nào</em>.</li>
+<li><strong>Làm sạch trước khi học</strong>: quét ảnh trùng lặp và ảnh "lọt" giữa tập học – tập thi.
+Đề thi mà lẫn trong vở học thì điểm sẽ ảo.</li>
+<li><strong>Học chuyển giao</strong>: bắt đầu từ mô hình đã học 1,3 triệu ảnh đời thường (ImageNet).
+Sau đó dạy tiếp bằng ảnh nội soi, thay vì học từ con số 0.</li>
+<li><strong>Một thước đo chung</strong>: mọi kiến trúc được chấm bằng đúng một bộ đề và một cách chấm.
+Nhờ vậy so sánh mới công bằng.</li>
+<li><strong>Lưu lại mọi dự đoán</strong> (logits): phân tích về sau chạy lại từ file đã lưu.
+Không tốn thêm giờ GPU nào.</li>
 </ul>
 <p class="gloss"><b>logits</b>: điểm thô mô hình chấm cho từng nhóm trước khi chọn đáp án — lưu lại được thì mọi cách chấm khác đều tính lại được sau.</p>"""))
 
@@ -443,12 +463,12 @@ S.append(slide(6, T, "Hồi 2 · Đo cho đúng", f"""
 <div class="cols c38">
 <div>
 <ul>
-<li>Chạy lại <em>y hệt</em> một thí nghiệm, điểm đã lệch <strong class="mono">±0,02–0,05</strong> —
-lớn hơn tác dụng của hầu hết "cải tiến". Tin một lần chạy đơn lẻ là tự lừa mình.</li>
-<li>Đổi card đồ hoạ (GPU) — cùng code, cùng dữ liệu — <strong>ra một mô hình khác</strong>.
-Vì vậy không bao giờ trộn kết quả từ hai loại máy vào một phép so.</li>
+<li>Chạy lại <em>y hệt</em> một thí nghiệm, điểm đã lệch <strong class="mono">±0,02–0,05</strong>.
+Mức lệch này lớn hơn tác dụng của hầu hết "cải tiến". Tin một lần chạy đơn lẻ là tự lừa mình.</li>
+<li>Đổi card đồ hoạ (GPU), giữ nguyên code và dữ liệu — vẫn <strong>ra một mô hình khác</strong>.
+Vì vậy không trộn kết quả từ hai loại máy vào một phép so.</li>
 </ul>
-<p class="takeaway"><strong>4 kỷ luật cho mọi con số</strong>: ① chạy 3 lần lấy trung bình ±σ ·
+<p class="takeaway"><strong>4 kỷ luật cho mọi con số</strong>: ① chạy 3 lần, lấy trung bình ±σ ·
 ② kèm khoảng tin cậy 95% · ③ một cách chọn checkpoint duy nhất cho tất cả ·
 ④ lưu mọi dự đoán để phân tích lại không tốn GPU.</p>
 </div>
@@ -459,22 +479,36 @@ không đổi (−0,0016) — kết luận không đến từ rò rỉ.</figcapt
 </div>
 <p class="gloss"><b>seed</b>: một lần chạy lặp độc lập (đổi cách xáo trộn ngẫu nhiên) · <b>σ (sigma)</b>: độ dao động giữa các lần chạy · <b>khoảng tin cậy</b>: vùng mà điểm thật nhiều khả năng nằm trong.</p>"""))
 
-S.append(slide(7, T, "Hồi 2 · Đo cho đúng", """
-<h2>Nhiễu nằm ở nhóm nào — và tại sao chỉ vài tấm ảnh làm điểm nhảy múa</h2>
+S.append(slide(7, T, "Hồi 2 · Đo cho đúng", f"""
+<h2>Nhiễu nằm ở nhóm nào — nhìn tận mắt bằng ảnh thật</h2>
+<div class="cols c2">
+<div>
 <table>
-<tr><th>Nhóm "nóng"</th><th class="num">Ảnh thi</th><th class="num">Điểm F1 (hệ thống cuối)</th><th>Hay bị nhầm với</th></tr>
-<tr><td>Viêm niêm mạc đại tràng</td><td class="num">6</td><td class="num neg">0,286</td><td>niêm mạc bình thường</td></tr>
-<tr><td>Túi thừa đại tràng</td><td class="num">6</td><td class="num muted">rất dao động</td><td>niêm mạc bình thường</td></tr>
-<tr><td>Manh tràng</td><td class="num">23</td><td class="num neg">0,364</td><td>niêm mạc đại tràng thường</td></tr>
-<tr><td>Polyp đại tràng</td><td class="num">164</td><td class="num">khá</td><td>ung thư đại trực tràng (ranh giới mờ)</td></tr>
-<tr><td>Hai nhóm "nhuộm màu" (polyp / diện cắt)</td><td class="num">28 · 49</td><td class="num">khá</td><td>lẫn nhau — cùng thuốc nhuộm xanh</td></tr>
+<tr><th>Nhóm "nóng"</th><th class="num">Ảnh thi</th><th class="num">F1</th><th>Hay nhầm với</th></tr>
+<tr><td>Viêm niêm mạc đại tràng</td><td class="num">6</td><td class="num neg">0,286</td><td>niêm mạc thường</td></tr>
+<tr><td>Túi thừa đại tràng</td><td class="num">6</td><td class="num muted">dao động mạnh</td><td>niêm mạc thường</td></tr>
+<tr><td>Manh tràng</td><td class="num">23</td><td class="num neg">0,364</td><td>niêm mạc thường</td></tr>
+<tr><td>Polyp đại tràng</td><td class="num">164</td><td class="num">khá</td><td>ung thư đại trực tràng</td></tr>
 </table>
-<ul style="margin-top:10px">
-<li>Nhóm chỉ có <strong>6 ảnh thi</strong>: đoán đúng/sai thêm 1 ảnh → điểm nhóm nhảy ~0,15 →
-điểm trung bình 22 nhóm lắc ~0,007 <em>chỉ vì một tấm ảnh</em>. Đây là gốc rễ cơ học của nhiễu ±0,02–0,05.</li>
-<li>Còn phát hiện <strong>cặp ảnh gần giống hệt nhưng mang 2 nhãn khác nhau</strong> — nghi nhãn gốc sai;
-không mô hình nào đúng được cả hai → tự nó đặt <em>trần</em> cho độ chính xác (Hồi 5 bàn hướng xử lý).</li>
-</ul>"""))
+<p class="note" style="margin-top:10px">Nhóm chỉ có 6 ảnh thi: đoán sai thêm 1 ảnh là điểm nhóm
+rơi ~0,15. Điểm trung bình 22 nhóm lắc ~0,007 chỉ vì một tấm ảnh. Đó là gốc rễ cơ học của
+nhiễu ±0,02–0,05.</p>
+</div>
+<div>
+<p style="font-weight:600;margin-bottom:6px">Bằng chứng 1 — hai nhóm khác nhau, nhìn gần như một:</p>
+<div class="pair">
+<figure><img src="{IMG_CECUM}" alt="Manh trang"/><figcaption>nhãn: <b>Manh tràng</b></figcaption></figure>
+<figure><img src="{IMG_NORMAL_LB}" alt="Niem mac binh thuong"/><figcaption>nhãn: <b>Niêm mạc bình thường</b></figcaption></figure>
+</div>
+<p style="font-weight:600;margin:12px 0 6px">Bằng chứng 2 — <span class="neg">cùng một khung hình, hai nhãn khác nhau</span> (độ giống 1,0000, từ bảng audit):</p>
+<div class="pair">
+<figure><img src="{IMG_MIS_A}" alt="Nhan Viem thuc quan"/><figcaption>nhãn: <b>Viêm thực quản</b></figcaption></figure>
+<figure><img src="{IMG_MIS_B}" alt="Nhan Thuc quan binh thuong"/><figcaption>nhãn: <b>Thực quản bình thường</b></figcaption></figure>
+</div>
+<p class="note" style="margin-top:10px">Không mô hình nào đúng được cả hai nhãn. Nhãn nghi sai
+tự đặt <strong>trần</strong> cho độ chính xác. Hồi 5 bàn hướng xử lý.</p>
+</div>
+</div>"""))
 
 S.append(slide(8, T, "Hồi 2 · Đo cho đúng", """
 <h2>Bước đầu tiên phải đạt: làm lại được con số của bài báo</h2>
@@ -484,11 +518,12 @@ S.append(slide(8, T, "Hồi 2 · Đo cho đúng", """
 <div class="stat"><span class="v plain small">0,6813</span><span class="k">Swin-T (S0) — baseline thứ hai nhóm tự thêm, bài báo không có</span></div>
 </div>
 <ul>
-<li>Đạt được chỉ với <strong>30 vòng học thay vì 150</strong> của bài báo — mô hình này đạt đỉnh sớm, học thêm không giúp.</li>
+<li>Đạt được chỉ với <strong>30 vòng học thay vì 150</strong> của bài báo. Mô hình này đạt đỉnh sớm;
+học thêm không giúp.</li>
 <li>Thí nghiệm học chuyển giao: <strong>mở toàn bộ mạng cho học lại</strong> thắng mọi mức "đóng băng"
-(chỉ học lớp cuối: 0,5674 → mở hết: 0,6686) — ảnh nội soi khác ảnh đời thường đủ nhiều để phải học lại sâu.</li>
+(chỉ học lớp cuối: 0,5674 → mở hết: 0,6686). Ảnh nội soi khác ảnh đời thường đủ nhiều để phải học lại sâu.</li>
 </ul>
-<p class="takeaway">Có mốc đáng tin rồi — giờ mới được phép hỏi: <strong>cái gì nâng được điểm?</strong> (Hồi 3)</p>"""))
+<p class="takeaway">Đã có mốc đáng tin. Giờ mới được phép hỏi: <strong>cái gì nâng được điểm?</strong> (Hồi 3)</p>"""))
 
 # ============ HOI 3 — CAI THIEN BANG GI ============ #
 S.append(slide(9, T, "Hồi 3 · Cải thiện bằng gì", """
@@ -520,9 +555,9 @@ S.append(slide(10, T, "Hồi 3 · Cải thiện bằng gì", """
 </div>
 <div>
 <div class="stat"><span class="v">+0,0443</span><span class="k">mức tăng của riêng công thức này — thay đổi <strong>duy nhất</strong> vượt ngưỡng nhiễu ±0,035 trong toàn bộ dự án</span></div>
-<p class="note" style="margin-top:14px">Cộng thêm hai chỉnh sửa <strong>không tốn GPU</strong> ở khâu chấm:
-<b>gộp 3 checkpoint tốt nhất</b> (+0,0094 — bớt phụ thuộc vận may của một thời điểm lưu) và
-<b>hiệu chỉnh theo tần suất nhóm</b> (+0,0143 — bù thiên vị nghiêng về nhóm đông ảnh).</p>
+<p class="note" style="margin-top:14px">Cộng thêm hai chỉnh sửa <strong>không tốn GPU</strong> ở khâu chấm.
+<b>Gộp 3 checkpoint tốt nhất</b>: +0,0094, bớt phụ thuộc vận may của một thời điểm lưu.
+<b>Hiệu chỉnh theo tần suất nhóm</b>: +0,0143, bù thiên vị nghiêng về nhóm đông ảnh.</p>
 </div>
 </div>
 <p class="gloss"><b>checkpoint</b>: bản lưu mô hình tại một thời điểm học · các tên trong ngoặc (warmup, LLRD, EMA, mixup) là thuật ngữ gốc để tra cứu.</p>"""))
@@ -541,15 +576,15 @@ một mình <span class="neg">−0,0160</span>, đổi công thức một mình 
 +0,0294</strong> (kiểm định thống kê p = 0,0018).</p>
 </div>
 <ul>
-<li>Nghĩa là: đây là <strong>một cặp đôi</strong>, không phải phép cộng hai thứ tốt. Công thức "học kỹ"
-cần kiến trúc có phần attention đủ dẻo để tận dụng; kiến trúc cũ bị nó làm quá tay.</li>
-<li>Phát hiện này <strong>ngược với kỳ vọng ban đầu</strong> ("cứ đổi backbone xịn là hơn") —
-và là đóng góp chính của nhóm.</li>
-<li>Hệ quả thực dụng: bản <em>nên triển khai</em> là hybrid @224 (nhanh hơn 1,7×, điểm tương đương).</li>
+<li>Đây là <strong>một cặp đôi</strong>, không phải phép cộng hai thứ tốt. Công thức "học kỹ"
+cần phần attention đủ dẻo để phát huy. Kiến trúc cũ bị nó làm quá tay.</li>
+<li>Phát hiện này <strong>ngược với kỳ vọng ban đầu</strong> ("cứ đổi mô hình xịn là hơn").
+Đây là đóng góp chính của nhóm.</li>
+<li>Hệ quả thực dụng: bản <em>nên triển khai</em> là hybrid @224 — nhanh hơn 1,7×, điểm tương đương.</li>
 </ul>
 </div>
-<p class="takeaway"><strong>Cách cải thiện độ chính xác, một câu:</strong> giữ nguyên dữ liệu —
-ghép <strong>công thức học kỹ</strong> với <strong>kiến trúc hybrid</strong>, rồi thu nốt phần tăng
+<p class="takeaway"><strong>Cách cải thiện độ chính xác, gói trong một câu:</strong> giữ nguyên dữ liệu;
+ghép <strong>công thức học kỹ</strong> với <strong>kiến trúc hybrid</strong>; thu nốt phần tăng
 miễn phí từ <strong>cách chấm</strong>.</p>"""))
 
 S.append(slide(12, T, "Hồi 3 · Cải thiện bằng gì", f"""
@@ -563,9 +598,9 @@ Vạch đỏ 0,6504 — mốc phải vượt — bị bỏ lại ngay từ bậc
 S.append(slide(13, T, "Hồi 4 · Kiểm chứng & So sánh", f"""
 <h2>Bằng chứng thống kê: cả khoảng tin cậy nằm trên mốc cũ</h2>
 {ci_svg()}
-<p class="note">Đọc hình: chấm tròn = điểm ước lượng; thanh ngang = vùng mà điểm thật nhiều khả năng nằm trong.
-Hai thanh của hệ thống đề xuất <strong>không chạm</strong> vạch đỏ 0,6504 — tức mức vượt không thể chỉ là may mắn.
-Độ chính xác thô (accuracy) cũng vượt: <span class="mono">0,850</span> so với 0,8203 của bài báo.</p>"""))
+<p class="note">Cách đọc hình: chấm tròn là điểm ước lượng; thanh ngang là vùng điểm thật nhiều khả năng
+nằm trong. Hai thanh của hệ thống đề xuất <strong>không chạm</strong> vạch đỏ 0,6504 — mức vượt không
+thể chỉ là may mắn. Accuracy cũng vượt: <span class="mono">0,850</span> so với 0,8203.</p>"""))
 
 S.append(slide(14, T, "Hồi 4 · Kiểm chứng & So sánh", """
 <h2>Đặt cạnh các công bố khác trên cùng bộ dữ liệu</h2>
@@ -574,12 +609,13 @@ S.append(slide(14, T, "Hồi 4 · Kiểm chứng & So sánh", """
 <tr><td>Bài báo gốc GastroVision (2023)</td><td>60:20:20 · macro-F1</td><td class="num">0,6504</td><td>✅ cùng luật chơi — nhóm đạt <strong>0,7441</strong></td></tr>
 <tr><td>CNN-Transformer lai (arXiv 2408.10733, 2024)</td><td><strong>80:20, không tập val</strong> · F1 nhiều khả năng weighted</td><td class="num">acc 0,8386</td><td>⚠️ chỉ so được accuracy: nhóm <strong>0,850</strong> — cao hơn dù dùng ít dữ liệu học hơn</td></tr>
 <tr><td>CNN + Explainable AI (BSPC 2024)</td><td>tách riêng tiêu hoá trên / dưới (2 bài toán con dễ hơn)</td><td class="num">macro-F1 0,664 · 0,681</td><td>⚠️ xác nhận vùng 0,65–0,68 là mức của DenseNet-based</td></tr>
+<tr><td>GastroViT — ensemble ViT (arXiv 2509.26502, 2025)</td><td>dataset chị em HyperKvasir, 23 nhóm</td><td class="num">F1 0,64 · acc 0,9198</td><td>⚠️ khác dataset. Nhưng minh hoạ rõ: accuracy 92% mà F1 chỉ 0,64 — <strong>F1 công bằng thấp là bản chất bài toán GI nhiều nhóm lệch</strong></td></tr>
 <tr><td>Hướng pretrain chuyên ngành (EndoExtend24, GastroNet-5M)</td><td>không công bố số trên split này</td><td class="num">—</td><td>❌ không so được — chính là hướng phát triển nhóm đề xuất</td></tr>
 </table>
-<p class="takeaway">Trong phạm vi khảo sát: <strong>chưa thấy công bố nào báo macro-F1 cao hơn 0,6504
-trên đúng luật chơi 22 nhóm / 60:20:20</strong> — nên 0,7441 là con số so-được tốt nhất nhóm biết;
-mỗi khác biệt luật chơi đều được ghi rõ thay vì so bừa.</p>
-<p class="gloss"><b>weighted F1</b>: trung bình có trọng số theo cỡ nhóm — nhóm đông ảnh lấn át, nên số thường cao hơn macro-F1 và không so trực tiếp được.</p>"""))
+<p class="takeaway">Trong phạm vi khảo sát: <strong>chưa công bố nào đạt macro-F1 trên 0,6504 ở đúng
+luật chơi 22 nhóm / 60:20:20</strong>. Vì vậy 0,7441 là con số so-được tốt nhất nhóm biết.
+Mỗi khác biệt luật chơi đều ghi rõ, không so bừa.</p>
+<p class="gloss"><b>weighted F1</b>: trung bình có trọng số theo cỡ nhóm — nhóm đông ảnh lấn át nên số thường cao hơn macro-F1, không so trực tiếp được.</p>"""))
 
 S.append(slide(15, T, "Hồi 4 · Kiểm chứng & So sánh", f"""
 <h2>Điểm tăng rơi đúng chỗ khó nhất: các nhóm hiếm</h2>
@@ -604,9 +640,9 @@ S.append(slide(16, T, "Hồi 4 · Kiểm chứng & So sánh", """
 <tr><td>Trên GPU T4 (3 lần chạy)</td><td class="num">0,6780 ± 0,0073</td></tr>
 <tr><td>Trên CPU 12 nhân (3 lần chạy)</td><td class="num">0,6919 ± 0,0060</td></tr>
 </table>
-<p class="note" style="margin-top:12px">Hai bên dùng <strong>luật chơi khác nhau</strong> (số vòng học,
-cỡ mẻ) nên không so trực tiếp — nhưng <strong>hai phát hiện phương pháp lặp lại nguyên vẹn</strong>:
-cách chấm "gộp 3 checkpoint" ổn định nhất, và hiệu chỉnh tần suất mất tác dụng khi thiếu công thức mới.</p>
+<p class="note" style="margin-top:12px">Hai bên dùng luật chơi khác nhau (số vòng học, cỡ mẻ) nên
+không so điểm trực tiếp. Nhưng <strong>hai phát hiện phương pháp lặp lại nguyên vẹn</strong>:
+"gộp 3 checkpoint" vẫn ổn định nhất; hiệu chỉnh tần suất vẫn mất tác dụng khi thiếu công thức mới.</p>
 </div>
 <div>
 <div class="stat"><span class="v">0,7059</span>
@@ -641,8 +677,9 @@ S.append(slide(18, T, "Hồi 5 · Nhìn thẳng", """
 <tr><td>Cặp ảnh gần giống hệt nhưng mang 2 nhãn khác nhau (nhãn nghi sai)</td><td>đặt <strong>trần</strong> độ chính xác — không mô hình nào đúng cả hai</td><td>nhờ bác sĩ nội soi rà lại các cặp đã khoanh vùng</td></tr>
 <tr><td>2 nhóm chỉ có 6 ảnh thi; 15 nhóm hiếm giữ 85,2% phần điểm còn thiếu</td><td>nguồn nhiễu chính; giới hạn là <em>dữ liệu</em> chứ không phải mô hình</td><td>bổ sung ảnh nhóm hiếm: học trước trên kho nội soi lớn hơn (HyperKvasir — kèm kiểm rò rỉ chéo bắt buộc); đầu phân loại kiểu cosine cho nhóm hiếm</td></tr>
 </table>
-<p class="note">Nguyên tắc giữ nguyên: mọi hướng trên phải qua đúng bộ kỷ luật đo ở Hồi 2 trước khi được
-tin — kể cả khi con số trông đẹp.</p>"""))
+<p class="note">Nguyên tắc giữ nguyên: mọi hướng trên phải qua đúng bộ kỷ luật đo ở Hồi 2.
+Con số trông đẹp đến đâu cũng chưa được tin trước khi qua cửa đó. Bằng chứng ảnh của
+"nhãn nghi sai": xem slide 07.</p>"""))
 
 S.append(slide(19, T, "Hồi 5 · Nhìn thẳng", """
 <h2>Hạn chế của giải pháp — và ba điều mang về</h2>
