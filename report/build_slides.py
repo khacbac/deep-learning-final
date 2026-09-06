@@ -84,6 +84,16 @@ IMG_MIS_B = exact_jpg("Normal esophagus", "WdSYgDiw.jpg")
 # cap DE NHAM: hai nhom khac nhau nhung nhin rat giong nhau.
 IMG_CECUM = sample_jpg("Cecum", size=300)
 
+# Bang chung cho slide 18 (ten file tu tables/07 + 08):
+# (1) RO RI that su: cung MOT anh (trung byte MD5) nam o hai tap, cung nhan Colon polyps.
+IMG_LEAK_TR = exact_jpg("Colon polyps", "ckda1fpc5000l3a5s17a45xql.jpg", size=260)
+IMG_LEAK_VA = exact_jpg("Colon polyps", "ba615bcd-2f99-4a12-884d-d9cd2c04c2a1.jpg", size=260)
+# (2) NHAN MAU THUAN cap thu hai (0.9998), khac cap thuc quan da dung o slide 7.
+IMG_MIS2_A = exact_jpg("Accessory tools", "ckcbq0gs703hv0y4h735ha581.jpg", size=260)
+IMG_MIS2_B = exact_jpg("Gastric polyps", "8f5dae06-df66-49e5-8a07-8447daf122e7.jpg", size=260)
+# (3) nhom qua hiem: Tui thua dai trang — 29 anh tong, chi 6 anh thi.
+IMG_DIVERT = sample_jpg("Colon diverticula", idx=1, size=260)
+
 CSS = """
 :root{
   --paper:#F6F8F7; --card:#FFFFFF; --ink:#1C2321; --muted:#56635E;
@@ -147,6 +157,16 @@ figcaption{font-size:15px;color:var(--muted);line-height:1.45}
 .pair figure{flex:1;min-width:0}
 .pair img{width:100%;height:150px;object-fit:cover;border:1px solid var(--line)}
 .pair figcaption{text-align:center;font-size:13.5px}
+.evid{display:flex;gap:8px;align-items:center}
+.evid figure{position:relative;flex:1;min-width:0;margin:0}
+.evid img{width:100%;height:96px;object-fit:cover;border:3px solid var(--red);display:block}
+.evid.soft img{border-color:var(--muted)}
+.tag{position:absolute;top:5px;left:5px;background:var(--red);color:#fff;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;padding:1px 7px;border-radius:3px;letter-spacing:.04em;white-space:nowrap}
+.tag.dark{background:#1C2321}
+.eq{font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--red);font-weight:700;flex:0 0 auto}
+.evhead{font-weight:600;font-size:15.5px;margin:0 0 4px}
+.evcap{font-size:13.5px;color:var(--muted);margin:4px 0 10px;line-height:1.35}
 kbd{font-family:'IBM Plex Mono',monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 6px;font-size:12px}
 #hint{position:fixed;right:16px;bottom:12px;color:#9FB0AA;font-size:12px;font-family:'IBM Plex Mono',monospace;opacity:.85}
 body.grid #stage{position:static;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px;background:var(--ink);height:auto}
@@ -669,17 +689,41 @@ S.append(slide(17, T, "Hồi 4 · Kiểm chứng & So sánh", f"""
 </div>"""))
 
 # ============ HOI 5 — NHIN THANG ============ #
-S.append(slide(18, T, "Hồi 5 · Nhìn thẳng", """
-<h2>Dữ liệu còn lỗi ở đâu — và xử lý tiếp thế nào</h2>
+S.append(slide(18, T, "Hồi 5 · Nhìn thẳng", f"""
+<h2>Dữ liệu còn lỗi ở đâu — ảnh thật, lỗi được khoanh đỏ</h2>
+<div class="cols c2">
+<div>
 <table>
-<tr><th>Vấn đề còn lại của dữ liệu</th><th>Ảnh hưởng đã đánh giá</th><th>Hướng xử lý đề xuất</th></tr>
-<tr><td>9 cặp ảnh "lọt" giữa các tập (và đó là <em>chặn dưới</em> — không có mã bệnh nhân để soát hết)</td><td>đã đo: bỏ đi chỉ đổi −0,0016 → kết luận an toàn</td><td>xin tác giả bổ sung mã bệnh nhân/ca soi; chia theo ca thay vì theo ảnh</td></tr>
-<tr><td>Cặp ảnh gần giống hệt nhưng mang 2 nhãn khác nhau (nhãn nghi sai)</td><td>đặt <strong>trần</strong> độ chính xác — không mô hình nào đúng cả hai</td><td>nhờ bác sĩ nội soi rà lại các cặp đã khoanh vùng</td></tr>
-<tr><td>2 nhóm chỉ có 6 ảnh thi; 15 nhóm hiếm giữ 85,2% phần điểm còn thiếu</td><td>nguồn nhiễu chính; giới hạn là <em>dữ liệu</em> chứ không phải mô hình</td><td>bổ sung ảnh nhóm hiếm: học trước trên kho nội soi lớn hơn (HyperKvasir — kèm kiểm rò rỉ chéo bắt buộc); đầu phân loại kiểu cosine cho nhóm hiếm</td></tr>
+<tr><th>Lỗi</th><th>Ảnh hưởng đã đo</th><th>Hướng xử lý</th></tr>
+<tr><td><strong>1 · Rò rỉ</strong>: 9 cặp ảnh "lọt" giữa các tập (chặn dưới — không có mã bệnh nhân)</td><td>bỏ đi chỉ đổi −0,0016 → kết luận an toàn</td><td>xin mã bệnh nhân/ca soi; chia theo ca</td></tr>
+<tr><td><strong>2 · Nhãn mâu thuẫn</strong>: cùng khung hình, hai tên bệnh</td><td>đặt <strong>trần</strong> độ chính xác</td><td>nhờ bác sĩ rà lại các cặp đã khoanh vùng</td></tr>
+<tr><td><strong>3 · Nhóm quá hiếm</strong>: 2 nhóm chỉ 6 ảnh thi; 15 nhóm hiếm giữ 85,2% dư địa</td><td>nguồn nhiễu chính; giới hạn là <em>dữ liệu</em></td><td>thêm ảnh nhóm hiếm (HyperKvasir, kèm kiểm rò rỉ chéo); đầu cosine</td></tr>
 </table>
-<p class="note">Nguyên tắc giữ nguyên: mọi hướng trên phải qua đúng bộ kỷ luật đo ở Hồi 2.
-Con số trông đẹp đến đâu cũng chưa được tin trước khi qua cửa đó. Bằng chứng ảnh của
-"nhãn nghi sai": xem slide 07.</p>"""))
+<p class="note" style="margin-top:10px">Mọi hướng trên phải qua đúng bộ kỷ luật đo ở Hồi 2.
+Con số đẹp đến đâu cũng chưa được tin trước khi qua cửa đó.</p>
+</div>
+<div>
+<p class="evhead">Lỗi 1 — cùng MỘT ảnh nằm ở hai tập <span class="mono muted">(trùng byte MD5)</span></p>
+<div class="evid">
+<figure><span class="tag">TẬP HỌC</span><img src="{IMG_LEAK_TR}" alt="anh trong tap hoc"/></figure>
+<span class="eq">=</span>
+<figure><span class="tag">TẬP VAL</span><img src="{IMG_LEAK_VA}" alt="anh trong tap val"/></figure>
+</div>
+<p class="evcap">Cùng nhãn <b>Polyp đại tràng</b> — "đề thi lẫn trong vở học". 1 trong 9 cặp audit tìm ra.</p>
+<p class="evhead">Lỗi 2 — cùng khung hình, hai tên bệnh <span class="mono muted">(độ giống 0,9998)</span></p>
+<div class="evid">
+<figure><span class="tag dark">nhãn: Dụng cụ can thiệp</span><img src="{IMG_MIS2_A}" alt="nhan dung cu"/></figure>
+<span class="eq">≈</span>
+<figure><span class="tag dark">nhãn: Polyp dạ dày</span><img src="{IMG_MIS2_B}" alt="nhan polyp da day"/></figure>
+</div>
+<p class="evcap">Cặp thứ hai, độc lập với cặp thực quản ở slide 07 — không mô hình nào đúng được cả hai.</p>
+<p class="evhead">Lỗi 3 — nhóm quá hiếm để chấm tin cậy</p>
+<div class="evid soft" style="max-width:47%">
+<figure><span class="tag">CHỈ 6 ẢNH THI</span><img src="{IMG_DIVERT}" alt="tui thua dai trang"/></figure>
+</div>
+<p class="evcap"><b>Túi thừa đại tràng</b>: 29 ảnh tổng → 6 ảnh thi. Sai thêm 1 ảnh, điểm nhóm rơi ~0,15.</p>
+</div>
+</div>"""))
 
 S.append(slide(19, T, "Hồi 5 · Nhìn thẳng", """
 <h2>Hạn chế của giải pháp — và ba điều mang về</h2>
